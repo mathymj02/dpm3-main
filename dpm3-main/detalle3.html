@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inauguración Cancha Auxiliar</title>
+  <style>
+    :root {
+      --verde-dpm: #0f5d3d;
+      --azul-dpm: #003366;
+      --blanco: #ffffff;
+      --amarillo: #ffe600;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('jugadores/EstadioChinquihue.png') no-repeat center center fixed;
+      background-size: cover;
+      color: var(--azul-dpm);
+      animation: fadeIn 1s ease;
+      padding-bottom: 90px;
+    }
+
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, var(--azul-dpm), var(--verde-dpm));
+      color: var(--blanco);
+      padding: 1.5rem;
+      margin: 0;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .detalle-contenido {
+      max-width: 900px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid var(--verde-dpm);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem auto;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .detalle-contenido img {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .detalle-contenido p {
+      line-height: 1.6;
+      font-size: 1.1rem;
+      color: #222;
+    }
+
+    nav {
+      background: linear-gradient(90deg, var(--verde-dpm), var(--azul-dpm));
+      width: 100%;
+      padding: 1rem 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    nav a {
+      color: var(--blanco);
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: var(--amarillo);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .detalle-contenido {
+        margin: 1rem;
+        padding: 1rem;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Inauguración de cancha auxiliar</h1>
+
+  <div class="detalle-contenido">
+    <p>Con un triunfo debutó Deportes Puerto Montt en el campeonato 2025 de la Segunda División Profesional del fútbol chileno.<br/>
+
+<br/>El cuadro sureño enfrentó al debutante en la categoría, Brujas de Salamanca, al que derrotó por 4 goles a 0.<br/>
+
+<br/>El partido desde un inicio fue controlado por los dirigidos de Jaime Vera por sobre los oriundos de la Región de Coquimbo.<br/>
+
+<br/>Al término del compromiso, el DT de los delfines realizó un positivo balance del desempeño de sus jugadores.<br/>
+
+<br/>Los goles fueron anotados por Harold Antiñirre, Danilo Díaz, Luciano «Tiburón» Vásquez y Sebastián Pérez.<br/>
+
+<br/>El encuentro se jugó antes más de 1.800 personas en el estadio Bicentenario Chinquihue.<br/>
+
+<br/>En la próxima fecha, a disputarse este fin de semana, será otra vez de local, ante San Antonio Unido, a las 18 horas del sábado 8 de marzo.<br/>
+
+<br/>Imágenes: Jorge Benítez Arias, @george_photographs67 @georgebacardi</p><br/>
+    <img src="jugadores/nove4.jpeg" alt="Nueva cancha auxiliar del club">
+  </div>
+
+  <nav>
+    <a href="../login.html">Login</a>
+    <a href="../jugadores.html">Jugadores</a>
+    <a href="../posiciones.html">Tabla</a>
+    <a href="../novedades.html">Novedades</a>
+    <a href="../historia.html">Historia</a>
+  </nav>
+</body>
+</html>

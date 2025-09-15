@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jugador - Estadísticas</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --verde-dpm: #0f5d3d;
+      --azul-dpm: #003366;
+      --blanco: #ffffff;
+      --amarillo: #ffe600;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: linear-gradient(to bottom right, var(--blanco), #e5f9f1);
+      padding-bottom: 100px;
+      color: var(--azul-dpm);
+    }
+
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, var(--azul-dpm), var(--verde-dpm));
+      color: var(--blanco);
+      padding: 1.5rem;
+      margin: 0;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .contenedor {
+      max-width: 700px;
+      margin: 2rem auto;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 2rem;
+      border-radius: 16px;
+      border: 2px solid var(--verde-dpm);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      backdrop-filter: blur(3px);
+    }
+
+    .foto-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+
+    .resplandor {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, #0f5d3d66 0%, transparent 60%);
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 0;
+      animation: pulso 3s ease-in-out infinite;
+    }
+
+    .jugador-img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 5px solid var(--verde-dpm);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transform: scale(0.9);
+      animation: aparecerImg 1s ease-in-out forwards;
+    }
+
+    #grafico {
+      max-width: 400px;
+      margin: 2rem auto;
+      display: none;
+      background: linear-gradient(to bottom right, #e8fdf2, #d6f0ff);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 80, 40, 0.15);
+      transition: all 0.4s ease;
+    }
+
+    #grafico:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 15px rgba(0, 150, 100, 0.3);
+    }
+
+    #descripcion {
+      font-size: 1rem;
+      color: #333;
+      margin-top: 1rem;
+    }
+
+    nav {
+      background: linear-gradient(90deg, var(--verde-dpm), var(--azul-dpm));
+      width: 100%;
+      padding: 1rem 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+    }
+
+    nav a {
+      color: white;
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      color: var(--amarillo);
+    }
+
+    @keyframes aparecerImg {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulso {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+      }
+      50 {
+        transform: translate(-50%, -50%) scale(1.08);
+        opacity: 0.8;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Estadísticas del Jugador</h1>
+
+  <div class="contenedor">
+    <div class="foto-wrapper">
+      <div class="resplandor"></div>
+      <img id="fotoJugador" class="jugador-img" src="" alt="Jugador" />
+    </div>
+
+    <div id="grafico">
+      <canvas id="playerChart"></canvas>
+    </div>
+
+    <div id="descripcion"></div>
+  </div>
+
+  <nav>
+    <a href="jugadores.html">Volver</a>
+  </nav>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const jugadorId = params.get('id');
+
+    const datosJugadores = {
+      'kevin-catalan': {
+        nombre: 'Kevin Catalán',
+        imagen: 'jugadores/jugador-5.png',
+        stats: [16, 9, 51, 11],
+        etiquetas: ['PJ', 'Porterías Cero', 'Atajadas', 'Goles Recibidos'],
+        descripcion: 'Portero seguro, 9 porterías en cero y 51 atajadas en 16 partidos.'
+      },
+      'carlos-rodriguez': {
+        nombre: 'Carlos Rodríguez',
+        imagen: 'jugadores/arnaldo-castillo-850x400.jpg',
+        stats: [18, 1, 2, 7],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Volante con liderazgo y excelente visión táctica.'
+      },
+      'vicente-yannez': {
+        nombre: 'Vicente Yañez',
+        imagen: 'jugadores/jugadores-1.png',
+        stats: [15, 0, 4, 5],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Lateral rápido y comprometido en defensa.'
+      },
+      'maximiliano-riveros': {
+        nombre: 'Maximiliano Riveros',
+        imagen: 'jugadores/download (1).jpg',
+        stats: [17, 2, 1, 8],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Jugador intenso, combina defensa fuerte con aporte ofensivo.'
+      },
+      'kevin-flores': {
+        nombre: 'Kevin Flores',
+        imagen: 'jugadores/download.jpg',
+        stats: [18, 0, 1, 6],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Defensa central con gran anticipación y fuerza.'
+      },
+      'yakob-yousef': {
+        nombre: 'Yakob Yousef',
+        imagen: 'jugadores/images (1).jpg',
+        stats: [20, 7, 2, 4],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Delantero desequilibrante, gran regate y definición.'
+      },
+      'sebastian-torres': {
+        nombre: 'Sebastián Torres',
+        imagen: 'jugadores/jugador-3.png',
+        stats: [19, 1, 3, 5],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Lateral derecho firme, gran despliegue físico.'
+      },
+      'daniel-bahamonde': {
+        nombre: 'Daniel Bahamonde',
+        imagen: 'jugadores/jugadores-6.png',
+        stats: [16, 0, 4, 2],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Lateral izquierdo rápido, buen ida y vuelta.'
+      },
+      'giovanni-bustos': {
+        nombre: 'Giovanni Bustos',
+        imagen: 'jugadores/jugador-4.png',
+        stats: [17, 2, 5, 2],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Volante ofensivo con visión y distribución efectiva.'
+      },
+      'sebastian-gonzalez': {
+        nombre: 'Sebastián Gonzalez',
+        imagen: 'jugadores/jugadores-2.png',
+        stats: [18, 1, 3, 3],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Mediocampista con precisión táctica y recuperación.'
+      },
+      'kevin-mansilla': {
+        nombre: 'Kevin Mansilla',
+        imagen: 'jugadores/jugadores-8.png',
+        stats: [17, 8, 1, 1],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Delantero explosivo con gran olfato goleador.'
+      },
+      'fabian-rodriguez': {
+        nombre: 'Fabián Rodríguez',
+        imagen: 'jugadores/jugadores-7.png',
+        stats: [17, 6, 2, 1],
+        etiquetas: ['PJ', 'Goles', 'Asistencias', 'Faltas'],
+        descripcion: 'Delantero izquierdo con excelente posicionamiento.'
+      }
+    };
+
+    const jugador = datosJugadores[jugadorId];
+
+    if (jugador) {
+      document.querySelector('h1').textContent = `Estadísticas de ${jugador.nombre}`;
+      document.getElementById('fotoJugador').src = jugador.imagen;
+
+      setTimeout(() => {
+        document.getElementById('grafico').style.display = 'block';
+        const ctx = document.getElementById('playerChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: jugador.etiquetas,
+            datasets: [{
+              data: jugador.stats,
+              backgroundColor: ['#2ecc71', '#3498db', '#f1c40f', '#e67e22']
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+        document.getElementById('descripcion').textContent = jugador.descripcion;
+      }, 1000);
+    } else {
+      document.querySelector('h1').textContent = 'Jugador no encontrado';
+    }
+  </script>
+</body>
+</html>
+

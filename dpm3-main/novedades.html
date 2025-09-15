@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Novedades DPM</title>
+  <style>
+    :root {
+      --verde-dpm: #0f5d3d;
+      --azul-dpm: #003366;
+      --blanco: #ffffff;
+      --amarillo: #ffe600;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding-bottom: 90px;
+      background: url('jugadores/EstadioChinquihue.png') no-repeat center center fixed;
+      background-size: cover;
+      color: var(--azul-dpm);
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, var(--azul-dpm), var(--verde-dpm));
+      color: var(--blanco);
+      padding: 1.5rem;
+      margin: 0;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      animation: fadeInDown 1s ease;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 2rem auto;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    #clima-container {
+      width: 30%;
+      background: rgba(255, 255, 255, 0.8);
+      border-left: 6px solid var(--verde-dpm);
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 1rem;
+      text-align: center;
+      color: var(--azul-dpm);
+      transition: all 0.3s ease;
+    }
+
+    #clima-container h3 {
+      color: var(--verde-dpm);
+      margin-bottom: 1rem;
+    }
+
+    #clima-container img {
+      width: 40px;
+      height: 40px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    #clima-container:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: scale(1.01);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .news-wrapper {
+      width: 70%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .news-item {
+      width: 90%;
+      max-width: 900px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid var(--verde-dpm);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, background-color 0.3s ease;
+      animation: fadeInUp 1s ease;
+    }
+
+    .news-item:hover {
+      transform: scale(1.02);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .news-item h3 {
+      margin-top: 1rem;
+      color: var(--verde-dpm);
+    }
+
+    .news-item p {
+      color: #333;
+    }
+
+    .news-item img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn {
+      margin-top: 0.5rem;
+      background-color: var(--verde-dpm);
+      color: var(--blanco);
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      background-color: #0c4b32;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    nav {
+      background: linear-gradient(90deg, var(--verde-dpm), var(--azul-dpm));
+      width: 100%;
+      padding: 1rem 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    nav a {
+      color: var(--blanco);
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: var(--amarillo);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #clima-container, .news-wrapper {
+        width: 100%;
+      }
+
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Últimas Novedades</h1>
+
+  <div class="container">
+    <div id="clima-container">
+      <h3>Pronóstico del Clima</h3>
+      <div id="clima-lista"><em>Cargando Pronóstico, espere un momento...</em></div>
+    </div>
+
+    <div class="news-wrapper">
+      <div class="news-item">
+        <img src="jugadores/robo-balon.jpg" alt="Celebración" />
+        <h3>Deportes Puerto Montt denuncia robo de balones de fútbol y otras especies desde estadio Chinquihue
+(Posted on june 6, 2025).</h3>
+        <p>¡35 balones profesionales de fútbol, propiedad del plantel de Deportes Puerto Montt,  fueron sustraídos desde el Estadio Bicentenario de Chinquihue.</p>
+        <a class="btn" href="detalle1.html">Ver más</a>
+      </div>
+
+      <div class="news-item">
+        <img src="jugadores/novedades1.jpg" alt="Celebración" />
+        <h3>Deportes Puerto Montt Inaugura Nueva Sala de acondicionamiento físico para futbolistas en el Estadio Regional de Chinquihue
+(Posted on Marzo 11, 2025).</h3>
+        <p>Por Marcelo Opitz, Comunicaciones DPM Este lunes, Deportes Puerto Montt llevó a cabo la inauguración de una moderna sala de musculación en el Estadio Regional de Chinquihue. Se trata de una sala…</p>
+        <a class="btn" href="detalle2.html">Ver más</a>
+      </div>
+
+      <div class="news-item">
+        <img src="jugadores/novedad3.jpeg" alt="Celebración" />
+        <h3>Partimos con un triunfo la temporada 2025: fue 4 a cero al debutante Brujas de Salamanca
+(Posted on july 3, 2025)</h3>
+        <p>Por Marcelo Opitz, Comunicaciones DPM Con un triunfo debutó Deportes Puerto Montt en el campeonato 2025 de la Segunda División Profesional del fútbol chileno. El cuadro sureño enfrentó al debutante en la…</p>
+        <a class="btn" href="detalle3.html">Ver más</a>
+      </div>
+    </div>
+  </div>
+
+
+  <nav>
+    <a href="login.html">Login</a>
+    <a href="jugadores.html">Jugadores</a>
+    <a href="posiciones.html">Tabla</a>
+    <a href="novedades.html" class="active">Novedades</a>
+    <a href="historia.html">Historia</a>
+        <a href="tienda.html" class="active">Tienda</a>
+    <a href="carrito.html">Carrito 🛒</a>
+  </nav>
+
+  <script>
+    async function mostrarClima(lat, lon) {
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,precipitation_probability_max&timezone=auto`);
+      const data = await res.json();
+      const dias = data.daily.time;
+      const temp = data.daily.temperature_2m_max;
+      const prob = data.daily.precipitation_probability_max;
+      const contenedor = document.getElementById('clima-lista');
+      contenedor.innerHTML = "";
+
+      dias.forEach((fecha, i) => {
+        const lluvia = prob[i] >= 50;
+        const icono = lluvia ? "🌧️" : "☀️";
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>${fecha}</strong>: ${temp[i]}°C → ${icono} ${lluvia ? 'Lluvia probable' : 'Clima agradable'}`;
+        contenedor.appendChild(p);
+      });
+    }
+
+    // Coordenadas de Puerto Montt
+    mostrarClima(-41.4693, -72.9424);
+
+    if (localStorage.getItem("logueado") !== "true") {
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

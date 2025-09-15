@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel Administrador - DPM</title>
+  <style>
+    :root {
+      --verde-dpm: #0f5d3d;
+      --azul-dpm: #003366;
+      --blanco: #ffffff;
+      --amarillo: #ffe600;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: url('jugadores/EstadioChinquihue.png') no-repeat center center fixed;
+      background-size: cover;
+      padding: 2rem 1rem 100px;
+      color: var(--azul-dpm);
+    }
+
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, var(--azul-dpm), var(--verde-dpm));
+      color: var(--blanco);
+      padding: 1.2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .admin-container {
+      background: rgba(255,255,255,0.95);
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 800px;
+      margin: 2rem auto;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .admin-container h2 {
+      text-align: center;
+      color: var(--verde-dpm);
+      margin-bottom: 1rem;
+    }
+
+    .admin-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    button {
+      background: linear-gradient(90deg, var(--verde-dpm), var(--azul-dpm));
+      color: var(--blanco);
+      border: none;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: var(--amarillo);
+      color: var(--azul-dpm);
+    }
+
+    form input {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    nav {
+      background: linear-gradient(90deg, var(--verde-dpm), var(--azul-dpm));
+      width: 100%;
+      padding: 1rem 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+      box-shadow: 0 -4px 8px rgba(0,0,0,0.2);
+    }
+
+    nav a {
+      color: var(--blanco);
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: var(--amarillo);
+    }
+  </style>
+</head>
+<body>
+  <h1>Bienvenido, Administrador ⚙️</h1>
+
+  <div class="admin-container">
+    <h2>Gestión de Productos</h2>
+    <form id="formProducto">
+      <input type="text" id="nombre" placeholder="Nombre del producto" required>
+      <input type="number" id="precio" placeholder="Precio" required>
+      <input type="text" id="imagen" placeholder="Ruta de imagen (ej: jugadores/polera.jpg)" required>
+      <button type="submit">Agregar Producto</button>
+    </form>
+
+    <div class="admin-actions">
+      <button onclick="verProductos()">Ver Productos</button>
+      <button onclick="verCarrito()">Ver Carrito</button>
+      <button onclick="vaciarTienda()">Vaciar Tienda</button>
+    </div>
+  </div>
+
+  <nav>
+    <a href="login.html">Login</a>
+    <a href="jugadores.html">Jugadores</a>
+    <a href="posiciones.html">Tabla</a>
+    <a href="novedades.html">Novedades</a>
+    <a href="historia.html">Historia</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="carrito.html">Carrito 🛒</a>
+    <a href="admin.html" class="active">Admin</a>
+  </nav>
+
+  <script>
+    // Validación de acceso solo admin
+    if(localStorage.getItem("usuario") !== "admin"){
+      alert("Acceso denegado 🚫");
+      window.location.href = "login.html";
+    }
+
+    // Guardar nuevo producto
+    document.getElementById("formProducto").addEventListener("submit", function(e){
+      e.preventDefault();
+      let nombre = document.getElementById("nombre").value;
+      let precio = parseInt(document.getElementById("precio").value);
+      let imagen = document.getElementById("imagen").value;
+
+      let productos = JSON.parse(localStorage.getItem("productos")) || [];
+      productos.push({ nombre, precio, imagen });
+      localStorage.setItem("productos", JSON.stringify(productos));
+
+      alert("✅ Producto agregado: " + nombre);
+      e.target.reset();
+    });
+
+    function verProductos(){
+      let productos = JSON.parse(localStorage.getItem("productos")) || [];
+      if(productos.length === 0){
+        alert("No hay productos cargados.");
+      } else {
+        let lista = productos.map(p => p.nombre + " - $" + p.precio).join("\n");
+        alert("📦 Productos en la tienda:\n" + lista);
+      }
+    }
+
+    function verCarrito(){
+      let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+      if(carrito.length === 0){
+        alert("Carrito vacío 🛒");
+      } else {
+        let lista = carrito.map(p => p.nombre + " - $" + p.precio).join("\n");
+        alert("🛒 Carrito actual:\n" + lista);
+      }
+    }
+
+    function vaciarTienda(){
+      localStorage.removeItem("productos");
+      alert("🚮 Todos los productos fueron eliminados.");
+    }
+  </script>
+</body>
+</html>

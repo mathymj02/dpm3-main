@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detalle Novedad 1</title>
+  <style>
+    :root {
+      --verde-dpm: #0f5d3d;
+      --azul-dpm: #003366;
+      --blanco: #ffffff;
+      --amarillo: #ffe600;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('jugadores/EstadioChinquihue.png') no-repeat center center fixed;
+      background-size: cover;
+      color: var(--azul-dpm);
+      animation: fadeIn 1s ease;
+      padding-bottom: 90px;
+    }
+
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, var(--azul-dpm), var(--verde-dpm));
+      color: var(--blanco);
+      padding: 1.5rem;
+      margin: 0;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .detalle-contenido {
+      max-width: 900px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid var(--verde-dpm);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem auto;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .detalle-contenido img {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .detalle-contenido p {
+      line-height: 1.6;
+      font-size: 1.1rem;
+      color: #222;
+    }
+
+    nav {
+      background: linear-gradient(90deg, var(--verde-dpm), var(--azul-dpm));
+      width: 100%;
+      padding: 1rem 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    nav a {
+      color: var(--blanco);
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: var(--amarillo);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .detalle-contenido {
+        margin: 1rem;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Campeonato Regional Temporada 2025</h1>
+
+  <div class="detalle-contenido">
+    <p>35 balones profesionales de fútbol, propiedad del plantel de Deportes Puerto Montt,  fueron sustraídos desde el Estadio Bicentenario de Chinquihue.<br/>
+
+<br/>La información fue confirmada por el dirigente e inversionista del club, Elías Lazcani.<br/>
+
+<br/>El personero indicó que se trata de balones profesionales, marca Molten, que tienen el logo de la Anfp y que cumplen con normativa Fifa.<br/>
+
+<br/>El hecho ocurrió el pasado viernes 1 de noviembre cuando desconocidos ingresaron al recinto deportivo, forzaron la seguridad de las puertas de la bodega en la que Deportes Puerto Montt guarda la utilería del plantel y sustrajeron los balones, un rollo de elástico que se utiliza para la demarcación de la cancha, una soldadora y un rotomartillo propiedad de la Municipalidad de Puerto Montt.<br/>
+
+<br/>Lazcani añadió que en las imágenes se aprecia que los autores del delito son menores de edad, los cuales entraron a la cancha, estuvieron jugando fútbol alrededor de dos horas, ingresaron al túnel y luego sustrajeron los elementos que estaban guardados.<br/>
+
+<br/>Los balones están avaluados en $240 mil cada uno, por lo que sumando todo los sustraído, las pérdidas superan los $8.400.000.<br/>
+
+<br/>Debido a ello, Elías Lazcani indicó que estampó una denuncia en la Séptima Comisaría de Carabineros de Puerto Montt y que presentará una querella contra quienes resulten responsables de los hechos.<br/>
+
+<br/>Por lo anterior, el dirigente de Deportes Puerto Montt llamó a la comunidad a no comprar los elementos sustraídos desde el estadio Chinquihue.<br/>
+
+<br/>Deportes Puerto Montt entregó a Carabineros las grabaciones captadas por las cámaras de televigilancia del estadio Chinquihue en las cuales se aprecia el rostro de los autores del robo.</p><br/>
+    <img src="jugadores/robo-balon1.jpg" alt="Celebración del campeonato">
+  </div>
+
+  <nav>
+    <a href="../login.html">Login</a>
+    <a href="../jugadores.html">Jugadores</a>
+    <a href="../posiciones.html">Tabla</a>
+    <a href="../novedades.html">Novedades</a>
+    <a href="../historia.html">Historia</a>
+    <a href="tienda.html">Tienda</a>
+    <a href="carrito.html">Carrito 🛒</a>
+  </nav>
+</body>
+</html>
+
