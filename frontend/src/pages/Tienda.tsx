@@ -21,6 +21,7 @@
  * ============================================================================
  */
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Producto } from '../types';
 import api from '../api/axiosConfig';
 import { Card } from '../components/ui/Card';
@@ -35,6 +36,7 @@ export const Tienda = () => {
   const [loading, setLoading] = useState(true);
   const [categoria, setCategoria] = useState('Todas');
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -63,9 +65,10 @@ export const Tienda = () => {
     : productos.filter(p => p.categoria === categoria);
 
   const agregarAlCarrito = async (productoId: string) => {
-    // Patrón Guardia de UX
+    // Patrón Guardia de UX: Redirigir al login si el hincha no ha iniciado sesión
     if (!isAuthenticated) {
-      toastInfo('Debes iniciar sesión para agregar productos al carrito.');
+      toastInfo('Debes iniciar sesión con tu cuenta de hincha para agregar productos y comprar.');
+      navigate('/login');
       return;
     }
     

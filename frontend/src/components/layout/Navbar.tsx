@@ -81,24 +81,22 @@ export const Navbar = () => {
             </Link>
           </div>
           
-          {/* Enlaces de Desktop (Ocultos si no está autenticado) */}
-          {isAuthenticated && (
-            <div className="hidden md:flex space-x-4 items-center">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive ? 'text-amarillo-dpm bg-white/10' : 'text-gray-100 hover:text-white hover:bg-white/5'
-                    }`
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              ))}
-            </div>
-          )}
+          {/* Enlaces de Desktop (Navegación libre para todos los hinchas) */}
+          <div className="hidden md:flex space-x-4 items-center">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive ? 'text-amarillo-dpm bg-white/10' : 'text-gray-100 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                {link.name}
+              </NavLink>
+            ))}
+          </div>
 
           {/* Opciones de usuario / carrito (Desktop) */}
           <div className="hidden md:flex items-center space-x-4">
@@ -159,7 +157,7 @@ export const Navbar = () => {
       {isOpen && (
         <div className="md:hidden bg-azul-dpm/95 border-t border-white/10">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {isAuthenticated && navLinks.map((link) => (
+            {navLinks.map((link) => (
               <NavLink
                 key={link.path}
                 to={link.path}

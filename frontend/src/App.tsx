@@ -48,21 +48,21 @@ function App() {
     <Routes>
       {/* El componente Layout se renderiza siempre. Su <Outlet /> muestra las rutas hijas */}
       <Route path="/" element={<Layout />}>
-        {/* Rutas de Acceso (Únicas públicas) */}
+        {/* Rutas Públicas (Navegación libre para todos los hinchas y visitantes) */}
+        <Route index element={<Home />} />
         <Route path="login" element={<Login />} />
         <Route path="registro" element={<Registro />} />
+        <Route path="jugadores" element={<Jugadores />} />
+        <Route path="jugadores/:id" element={<JugadorDetalle />} />
+        <Route path="tienda" element={<Tienda />} />
+        <Route path="novedades" element={<Novedades />} />
+        <Route path="novedades/:id" element={<NovedadDetalle />} />
+        <Route path="historia" element={<Historia />} />
+        <Route path="posiciones" element={<Posiciones />} />
         
-        {/* Rutas Protegidas (Requieren inicio de sesión obligatorio) */}
+        {/* Rutas Protegidas (Exige inicio de sesión obligatorio para transaccionar) */}
         <Route element={<PrivateRoute />}>
-          <Route index element={<Home />} />
-          <Route path="jugadores" element={<Jugadores />} />
-          <Route path="jugadores/:id" element={<JugadorDetalle />} />
-          <Route path="tienda" element={<Tienda />} />
           <Route path="carrito" element={<Carrito />} />
-          <Route path="novedades" element={<Novedades />} />
-          <Route path="novedades/:id" element={<NovedadDetalle />} />
-          <Route path="historia" element={<Historia />} />
-          <Route path="posiciones" element={<Posiciones />} />
         </Route>
 
         {/* Rutas de Administrador (Solo usuarios autenticados Y con rol ADMIN) */}
