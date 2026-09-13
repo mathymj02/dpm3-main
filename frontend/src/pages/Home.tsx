@@ -83,36 +83,72 @@ export const Home = () => {
 
   return (
     <div className="w-full">
-      {/* SECCIÓN 1: Hero Header con imagen de fondo (Estadio) */}
-      <section className="relative bg-gradient-to-br from-verde-dpm to-azul-dpm text-white py-32 overflow-hidden">
-        <div className="absolute inset-0 opacity-25 bg-[url('/images/EstadioChinquihue.png')] bg-cover bg-center"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* SECCIÓN 1: Hero Cinematográfico con Video Aéreo del Estadio Chinquihue */}
+      <section className="relative h-[85vh] min-h-[580px] w-full flex items-center justify-center overflow-hidden">
+        {/* Video en movimiento de fondo vía Vimeo (sin consumo de ancho de banda propio) */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+          <iframe
+            src="https://player.vimeo.com/video/1181735914?muted=1&autoplay=1&loop=1&background=1&app_id=122963"
+            className="w-full h-[140%] -top-[20%] relative object-cover scale-125"
+            allow="autoplay; fullscreen"
+            title="Video Aéreo Estadio Chinquihue DPM"
+          />
+        </div>
+
+        {/* Degradado institucional cinematográfico de alto contraste */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-azul-dpm/60 to-slate-950/80 backdrop-blur-[1px]" />
+
+        {/* Contenido interactivo flotante sobre el video */}
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white space-y-6">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-azul-dpm/80 border border-amarillo-dpm/40 text-amarillo-dpm text-xs sm:text-sm font-black uppercase tracking-widest shadow-xl"
+          >
+            ⚓ La Pasión del Sur que Nunca Se Detiene
+          </motion.div>
+
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-7xl font-extrabold mb-4"
+            className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white drop-shadow-2xl"
           >
-            Club Deportes Puerto Montt
+            Club Deportes <span className="text-amarillo-dpm">Puerto Montt</span>
           </motion.h1>
+
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-xl md:text-3xl text-amarillo-dpm font-bold mb-8"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-base sm:text-xl text-gray-200 font-medium max-w-2xl mx-auto drop-shadow"
           >
-            ¡Vamos Puerto Montt!
+            El orgullo de la Región de Los Lagos. Vive cada fecha en el Estadio Chinquihue con la hinchada albiverde.
           </motion.p>
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex justify-center gap-4"
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex flex-wrap justify-center gap-4 pt-2"
           >
-            <Link to="/jugadores" className="bg-amarillo-dpm text-azul-dpm font-bold py-3 px-8 rounded-full hover:bg-white transition shadow-lg">
-              Ver Plantel
+            <Link 
+              to="/socios" 
+              className="bg-amarillo-dpm hover:bg-yellow-400 text-slate-950 font-black py-3.5 px-8 rounded-2xl transition-all transform hover:-translate-y-0.5 shadow-2xl shadow-amarillo-dpm/30"
+            >
+              Hazte Socio Oficial
             </Link>
-            <Link to="/tienda" className="bg-white text-verde-dpm font-bold py-3 px-8 rounded-full hover:bg-gray-100 transition shadow-lg">
+            <Link 
+              to="/jugadores" 
+              className="bg-azul-dpm/90 hover:bg-azul-dpm text-white font-bold py-3.5 px-8 rounded-2xl transition border border-white/20 hover:border-white/40 shadow-xl"
+            >
+              Conocer Plantel
+            </Link>
+            <Link 
+              to="/tienda" 
+              className="bg-white/10 hover:bg-white/20 text-white font-bold py-3.5 px-6 rounded-2xl transition border border-white/10 shadow-lg"
+            >
               Tienda Oficial
             </Link>
           </motion.div>
