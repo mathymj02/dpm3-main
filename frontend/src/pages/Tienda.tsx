@@ -43,11 +43,11 @@ export const Tienda = () => {
         setProductos(response.data);
       } catch (error) {
         setProductos([
-          { id: '1', nombre: 'Camiseta Oficial Local 2025', precio: 39990, imagenUrl: 'https://via.placeholder.com/300', stock: 50, categoria: 'Indumentaria' },
-          { id: '2', nombre: 'Camiseta Oficial Visita 2025', precio: 39990, imagenUrl: 'https://via.placeholder.com/300', stock: 30, categoria: 'Indumentaria' },
-          { id: '3', nombre: 'Polerón DPM', precio: 29990, imagenUrl: 'https://via.placeholder.com/300', stock: 20, categoria: 'Indumentaria' },
-          { id: '4', nombre: 'Gorro DPM', precio: 12990, imagenUrl: 'https://via.placeholder.com/300', stock: 100, categoria: 'Accesorios' },
-          { id: '5', nombre: 'Taza Escudo', precio: 5990, imagenUrl: 'https://via.placeholder.com/300', stock: 200, categoria: 'Accesorios' },
+          { id: '1', nombre: 'Polera Oficial DPM', precio: 15000, imagenUrl: '/images/polera.jpg', stock: 100, categoria: 'Indumentaria' },
+          { id: '2', nombre: 'Short Oficial DPM', precio: 10000, imagenUrl: '/images/short.webp', stock: 80, categoria: 'Indumentaria' },
+          { id: '3', nombre: 'Calcetas Oficiales', precio: 5000, imagenUrl: '/images/calcetas.webp', stock: 150, categoria: 'Indumentaria' },
+          { id: '4', nombre: 'Gorro DPM Oficial', precio: 8000, imagenUrl: '/images/yoki.jpg', stock: 50, categoria: 'Accesorios' },
+          { id: '5', nombre: 'Entrada Estadio Chinquihue', precio: 7000, imagenUrl: '/images/entrada.png', stock: 500, categoria: 'Tickets' },
         ]);
       } finally {
         setLoading(false);

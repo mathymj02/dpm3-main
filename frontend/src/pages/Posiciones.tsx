@@ -36,11 +36,16 @@ export const Posiciones = () => {
         setPosiciones(response.data);
       } catch (error) {
         setPosiciones([
-          { equipo: 'Deportes Puerto Montt', escudoUrl: 'https://via.placeholder.com/30', pj: 10, pg: 7, pe: 3, pp: 0, gf: 15, gc: 5, dg: 10, pts: 24 },
-          { equipo: 'Rangers', escudoUrl: 'https://via.placeholder.com/30', pj: 10, pg: 6, pe: 2, pp: 2, gf: 14, gc: 8, dg: 6, pts: 20 },
-          { equipo: 'Deportes Temuco', escudoUrl: 'https://via.placeholder.com/30', pj: 10, pg: 5, pe: 4, pp: 1, gf: 12, gc: 9, dg: 3, pts: 19 },
-          { equipo: 'San Luis', escudoUrl: 'https://via.placeholder.com/30', pj: 10, pg: 4, pe: 2, pp: 4, gf: 10, gc: 10, dg: 0, pts: 14 },
-          { equipo: 'U. de Concepción', escudoUrl: 'https://via.placeholder.com/30', pj: 10, pg: 3, pe: 3, pp: 4, gf: 8, gc: 12, dg: -4, pts: 12 },
+          { equipo: 'Deportes Puerto Montt', escudoUrl: '/images/logo-deportes-puertomontt.png', pj: 12, pg: 7, pe: 3, pp: 2, gf: 22, gc: 12, dg: 10, pts: 24 },
+          { equipo: 'San Marcos de Arica', escudoUrl: '/images/images.jpg', pj: 12, pg: 6, pe: 3, pp: 3, gf: 18, gc: 13, dg: 5, pts: 21 },
+          { equipo: 'Deportes Valdivia', escudoUrl: '/images/download (3).png', pj: 12, pg: 5, pe: 4, pp: 3, gf: 20, gc: 16, dg: 4, pts: 19 },
+          { equipo: 'Deportes Melipilla', escudoUrl: '/images/images.jpg', pj: 12, pg: 5, pe: 2, pp: 5, gf: 17, gc: 16, dg: 1, pts: 17 },
+          { equipo: 'Provincial Osorno', escudoUrl: '/images/2IYaruYV_400x400.jpg', pj: 12, pg: 4, pe: 4, pp: 4, gf: 15, gc: 14, dg: 1, pts: 16 },
+          { equipo: 'Deportes Concepción', escudoUrl: '/images/download.png', pj: 12, pg: 4, pe: 3, pp: 5, gf: 14, gc: 16, dg: -2, pts: 15 },
+          { equipo: 'Deportes Temuco', escudoUrl: '/images/download (1).png', pj: 12, pg: 4, pe: 2, pp: 6, gf: 13, gc: 17, dg: -4, pts: 14 },
+          { equipo: 'Magallanes', escudoUrl: '/images/download (2).png', pj: 12, pg: 3, pe: 3, pp: 6, gf: 12, gc: 17, dg: -5, pts: 12 },
+          { equipo: 'Rangers de Talca', escudoUrl: '/images/images.png', pj: 12, pg: 3, pe: 1, pp: 8, gf: 10, gc: 21, dg: -11, pts: 10 },
+          { equipo: 'Iberia Los Ángeles', escudoUrl: '/images/club-atletico-iberia.png', pj: 12, pg: 2, pe: 2, pp: 8, gf: 9, gc: 21, dg: -12, pts: 8 },
         ]);
       } finally {
         setLoading(false);

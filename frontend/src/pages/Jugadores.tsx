@@ -37,12 +37,20 @@ export const Jugadores = () => {
         const response = await api.get('/jugadores');
         setJugadores(response.data);
       } catch (error) {
-        // Mock data en caso de fallo de API para prevenir pantallas rotas
+        // Datos oficiales de DPM con imágenes locales en caso de desconexión
         setJugadores([
-          { id: '1', nombre: 'Juan Pérez', posicion: 'Delantero', edad: 25, nacionalidad: 'Chileno', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Goleador' },
-          { id: '2', nombre: 'Carlos Soto', posicion: 'Portero', edad: 28, nacionalidad: 'Chileno', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Seguro' },
-          { id: '3', nombre: 'Luis Martínez', posicion: 'Defensa', edad: 30, nacionalidad: 'Argentino', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Muralla' },
-          { id: '4', nombre: 'Pedro Gómez', posicion: 'Volante', edad: 22, nacionalidad: 'Chileno', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Creativo' }
+          { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-5.png', descripcion: '🧱 Muro en el arco: imbatible bajo presión con reflejos felinos y gran juego aéreo.' },
+          { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chile', fotoUrl: '/images/arnaldo-castillo-850x400.jpg', descripcion: '🧠 Líder táctico: excelente distribución en el mediocampo y cobertura impecable.' },
+          { id: '3', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-1.png', descripcion: '⚡ Velocidad y compromiso defensivo por la banda diestra.' },
+          { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/download (1).jpg', descripcion: '🦁 Líder silencioso, precisión en pases y gran dominio de balón.' },
+          { id: '5', nombre: 'Kevin Flores', posicion: 'Defensa', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/download.jpg', descripcion: '🧱 Anticipación férrea y gran poderío físico en la zaga.' },
+          { id: '6', nombre: 'Yakob Yousef', posicion: 'Delantero', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/images (1).jpg', descripcion: '⚡ Desborde constante, presión alta y definición letal.' },
+          { id: '7', nombre: 'Sebastián Torres', posicion: 'Defensa', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-3.png', descripcion: '🚀 Velocidad, centros quirúrgicos y marca implacable.' },
+          { id: '8', nombre: 'Daniel Bahamonde', posicion: 'Defensa', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-6.png', descripcion: '🏃‍♂️ Motor del carril izquierdo con proyección y repliegue continuo.' },
+          { id: '9', nombre: 'Giovanni Bustos', posicion: 'Volante', edad: 25, nacionalidad: 'Chile', fotoUrl: '/images/jugador-4.png', descripcion: '🎩 Visión de juego privilegiada, control de tiempos y presión.' },
+          { id: '10', nombre: 'Sebastián González', posicion: 'Volante', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-2.png', descripcion: '📊 Inteligencia táctica y efectividad en la recuperación.' },
+          { id: '11', nombre: 'Kevin Mansilla', posicion: 'Delantero', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-8.png', descripcion: '🧭 Olfato goleador de área y ubicación perfecta.' },
+          { id: '12', nombre: 'Fabián Rodríguez', posicion: 'Delantero', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-7.png', descripcion: '❤️ Entrega total, letal al acecho del gol en el área rival.' }
         ]);
       } finally {
         setLoading(false); // Retira el spinner de carga al finalizar

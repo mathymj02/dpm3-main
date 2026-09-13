@@ -69,31 +69,36 @@ export const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-verde-dpm to-azul-dpm shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          {/* Logo Brand */}
+          {/* Logo Brand con escudo oficial */}
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="text-white font-bold text-xl flex items-center gap-2">
-              <span className="bg-blanco text-verde-dpm p-1 rounded font-black">DPM</span>
-              <span className="hidden sm:block">Deportes Puerto Montt</span>
+              <img 
+                src="/images/logo-deportes-puertomontt.png" 
+                alt="Escudo DPM" 
+                className="w-10 h-10 object-contain bg-white rounded-full p-0.5 shadow"
+              />
+              <span className="hidden sm:block font-extrabold tracking-wide">Deportes Puerto Montt</span>
             </Link>
           </div>
           
-          {/* Enlaces de Desktop (Ocultos en móvil) */}
-          <div className="hidden md:flex space-x-4 items-center">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className={({ isActive }) =>
-                  // El estado activo cambia el color del texto a amarillo
-                  `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive ? 'text-amarillo-dpm bg-white/10' : 'text-gray-100 hover:text-white hover:bg-white/5'
-                  }`
-                }
-              >
-                {link.name}
-              </NavLink>
-            ))}
-          </div>
+          {/* Enlaces de Desktop (Ocultos si no está autenticado) */}
+          {isAuthenticated && (
+            <div className="hidden md:flex space-x-4 items-center">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive ? 'text-amarillo-dpm bg-white/10' : 'text-gray-100 hover:text-white hover:bg-white/5'
+                    }`
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              ))}
+            </div>
+          )}
 
           {/* Opciones de usuario / carrito (Desktop) */}
           <div className="hidden md:flex items-center space-x-4">
@@ -154,7 +159,7 @@ export const Navbar = () => {
       {isOpen && (
         <div className="md:hidden bg-azul-dpm/95 border-t border-white/10">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navLinks.map((link) => (
+            {isAuthenticated && navLinks.map((link) => (
               <NavLink
                 key={link.path}
                 to={link.path}

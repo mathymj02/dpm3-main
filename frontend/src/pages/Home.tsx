@@ -39,22 +39,22 @@ export const Home = () => {
     const fetchHomeData = async () => {
       try {
         const [novRes, jugRes, prodRes] = await Promise.all([
-          // Si falla la API, inyectamos Fallback Data temporal
+          // Si falla la API, inyectamos Fallback Data con imágenes reales locales del club
           api.get('/novedades').catch(() => ({ data: [
-            { id: '1', titulo: '¡Gran victoria en casa!', contenido: 'El equipo demostró su jerarquía...', imagenUrl: 'https://via.placeholder.com/400x250', fechaPublicacion: '2025-01-10', autorNombre: 'Admin' },
-            { id: '2', titulo: 'Nuevos abonos disponibles', contenido: 'Asegura tu lugar en el Chinquihue...', imagenUrl: 'https://via.placeholder.com/400x250', fechaPublicacion: '2025-01-08', autorNombre: 'Admin' },
-            { id: '3', titulo: 'Amistoso confirmado', contenido: 'Nos preparamos para la temporada...', imagenUrl: 'https://via.placeholder.com/400x250', fechaPublicacion: '2025-01-05', autorNombre: 'Admin' },
+            { id: '1', titulo: 'Deportes Puerto Montt denuncia robo de balones', contenido: '35 balones profesionales de fútbol fueron sustraídos desde el Estadio Bicentenario de Chinquihue...', imagenUrl: '/images/robo-balon.jpg', fechaPublicacion: '06-06-2025', autorNombre: 'Comunicaciones DPM' },
+            { id: '2', titulo: 'Nueva Sala de acondicionamiento físico en el Chinquihue', contenido: 'Se trata de una moderna sala de musculación para el plantel profesional...', imagenUrl: '/images/novedades1.jpg', fechaPublicacion: '11-03-2025', autorNombre: 'Comunicaciones DPM' },
+            { id: '3', titulo: 'Gran debut 2025: 4 a cero a Brujas de Salamanca', contenido: 'Con un contundente triunfo debutó Deportes Puerto Montt en la Segunda División...', imagenUrl: '/images/novedad3.jpeg', fechaPublicacion: '03-07-2025', autorNombre: 'Comunicaciones DPM' },
           ]})),
           api.get('/jugadores').catch(() => ({ data: [
-            { id: '1', nombre: 'Juan Pérez', posicion: 'Delantero', edad: 25, nacionalidad: 'Chileno', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Goleador' },
-            { id: '2', nombre: 'Carlos Soto', posicion: 'Portero', edad: 28, nacionalidad: 'Chileno', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Seguro' },
-            { id: '3', nombre: 'Luis Martínez', posicion: 'Defensa', edad: 30, nacionalidad: 'Argentino', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Muralla' },
-            { id: '4', nombre: 'Pedro Gómez', posicion: 'Volante', edad: 22, nacionalidad: 'Chileno', fotoUrl: 'https://via.placeholder.com/300', descripcion: 'Creativo' }
+            { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-5.png', descripcion: 'Muro en el arco con reflejos felinos.' },
+            { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chileno', fotoUrl: '/images/arnaldo-castillo-850x400.jpg', descripcion: 'Líder en el mediocampo y orden táctico.' },
+            { id: '3', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 29, nacionalidad: 'Chileno', fotoUrl: '/images/jugadores-1.png', descripcion: 'Velocidad y compromiso defensivo.' },
+            { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chileno', fotoUrl: '/images/download (1).jpg', descripcion: 'Líder silencioso y gran juego de pies.' }
           ]})),
           api.get('/productos').catch(() => ({ data: [
-            { id: '1', nombre: 'Camiseta Oficial 2025', precio: 35000, imagenUrl: 'https://via.placeholder.com/200', stock: 10, categoria: 'Indumentaria' },
-            { id: '2', nombre: 'Gorro DPM', precio: 12000, imagenUrl: 'https://via.placeholder.com/200', stock: 20, categoria: 'Accesorios' },
-            { id: '3', nombre: 'Bufanda Albiverde', precio: 8000, imagenUrl: 'https://via.placeholder.com/200', stock: 15, categoria: 'Accesorios' },
+            { id: '1', nombre: 'Polera Oficial DPM', precio: 15000, imagenUrl: '/images/polera.jpg', stock: 50, categoria: 'Indumentaria' },
+            { id: '2', nombre: 'Short Oficial DPM', precio: 10000, imagenUrl: '/images/short.webp', stock: 40, categoria: 'Indumentaria' },
+            { id: '3', nombre: 'Gorro DPM', precio: 8000, imagenUrl: '/images/yoki.jpg', stock: 30, categoria: 'Accesorios' },
           ]}))
         ]);
 
@@ -85,7 +85,7 @@ export const Home = () => {
     <div className="w-full">
       {/* SECCIÓN 1: Hero Header con imagen de fondo (Estadio) */}
       <section className="relative bg-gradient-to-br from-verde-dpm to-azul-dpm text-white py-32 overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/4/4b/Estadio_Chinquihue_2.jpg')] bg-cover bg-center"></div>
+        <div className="absolute inset-0 opacity-25 bg-[url('/images/EstadioChinquihue.png')] bg-cover bg-center"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
