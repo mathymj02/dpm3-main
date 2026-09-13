@@ -1,0 +1,50 @@
+/**
+ * ============================================================================
+ * Archivo: tsconfig.json
+ * Proyecto: DPM Pro - Club Deportes Puerto Montt
+ * ============================================================================
+ * 
+ * ¿QUÉ HACE ESTE ARCHIVO?
+ * Archivo de configuración principal para TypeScript en el entorno del navegador
+ * (código fuente de la aplicación React).
+ * 
+ * ¿POR QUÉ ESTA TECNOLOGÍA?
+ * TypeScript se usa para proveer tipado estático, previniendo errores de
+ * ejecución y mejorando el autocompletado en el IDE. "strict": true
+ * asegura que el compilador sea riguroso con los tipos, forzando mejores
+ * prácticas de código.
+ * 
+ * DECISIONES DE DISEÑO:
+ * - "paths": Configura el alias "@/*" para que apunte a "src/*", sincronizado
+ *   con la configuración de Vite, facilitando las importaciones limpias.
+ * - "isolatedModules": Necesario para Vite (esbuild transpila cada archivo 
+ *   de forma independiente).
+ * - "jsx": "react-jsx" permite usar JSX sin tener que importar React
+ *   en cada archivo (característica introducida en React 17+).
+ * ============================================================================
+ */
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"] // Habilita las importaciones absolutas
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

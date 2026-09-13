@@ -1,0 +1,35 @@
+/*
+ * ============================================================================
+ * Archivo: globals.css
+ * Proyecto: DPM Pro - Club Deportes Puerto Montt
+ * ============================================================================
+ * 
+ * ¿QUÉ HACE ESTE ARCHIVO?
+ * Es la hoja de estilos global. Configura las capas base de Tailwind CSS
+ * y define estilos transversales (defaults) que aplican a toda la aplicación.
+ * 
+ * ¿POR QUÉ ESTA TECNOLOGÍA?
+ * Las directivas `@tailwind` inyectan las funcionalidades del framework
+ * (reinicios, componentes, utilidades).
+ * 
+ * DECISIONES DE DISEÑO:
+ * - scroll-behavior: smooth: Habilita el desplazamiento suave nativo al hacer
+ *   clic en enlaces ancla (por ejemplo para subir al inicio de la página).
+ * - body @apply: Centraliza la fuente (Inter), color de fondo base (gray-50)
+ *   y color de texto principal (gray-900) para unificar la UI.
+ * ============================================================================
+ */
+
+@tailwind base;       /* Reinicia estilos de navegadores (reset/normalize) */
+@tailwind components; /* Clases personalizadas de componentes (si hubiera) */
+@tailwind utilities;  /* Todas las clases utilitarias de Tailwind */
+
+@layer base {
+  html {
+    scroll-behavior: smooth; /* Desplazamiento suave para anclas */
+  }
+  body {
+    /* Define la tipografía base y los colores predominantes para toda la app */
+    @apply font-sans bg-gray-50 text-gray-900;
+  }
+}
