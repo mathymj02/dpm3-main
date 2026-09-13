@@ -41,6 +41,7 @@ import { Novedades } from './pages/Novedades';
 import { NovedadDetalle } from './pages/NovedadDetalle';
 import { Historia } from './pages/Historia';
 import { Posiciones } from './pages/Posiciones';
+import { Socios } from './pages/Socios';
 import { AdminDashboard } from './pages/AdminDashboard';
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         {/* Rutas Públicas (Navegación libre para todos los hinchas y visitantes) */}
         <Route index element={<Home />} />
+        <Route path="socios" element={<Socios />} />
         <Route path="login" element={<Login />} />
         <Route path="registro" element={<Registro />} />
         <Route path="jugadores" element={<Jugadores />} />

@@ -218,6 +218,108 @@ export const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* SECCIÓN 5: Hazte Socio y Vive la Pasión */}
+      <section className="py-16 bg-gradient-to-r from-azul-dpm via-slate-900 to-azul-dpm text-white relative overflow-hidden border-y border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="max-w-2xl space-y-4">
+            <span className="text-xs font-black uppercase tracking-widest text-amarillo-dpm bg-amarillo-dpm/20 px-3 py-1 rounded-full border border-amarillo-dpm/40">
+              Comunidad Oficial
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black">Hazte Socio y Obtén Tu Carnet Digital</h2>
+            <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+              Entradas liberadas a los partidos en Chinquihue, descuentos en Subway, Pastelería Dolly, Cugat y más de 10 comercios de la ciudad.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Link 
+              to="/socios" 
+              className="bg-amarillo-dpm hover:bg-yellow-400 text-slate-950 font-black px-8 py-4 rounded-2xl shadow-xl shadow-amarillo-dpm/20 transition-transform transform hover:-translate-y-1 inline-block"
+            >
+              Conocer Planes y Beneficios &rarr;
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* SECCIÓN 6: Mascota Oficial "Chinquihuin" y DPM TV */}
+      <section className="py-16 bg-white/90 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            
+            {/* Tarjeta Mascota Chinquihuin */}
+            <div className="rounded-3xl bg-gradient-to-br from-azul-dpm to-slate-900 text-white p-8 sm:p-10 shadow-xl border border-white/10 flex flex-col sm:flex-row gap-6 items-center">
+              <div className="w-32 h-32 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center p-3 shrink-0 overflow-hidden shadow-inner">
+                <img 
+                  src="https://dpmchile.cl/wp-content/uploads/2026/05/WhatsApp-Image-2026-05-28-at-22.30.44-2.webp" 
+                  alt="Chinquihuin Mascota DPM" 
+                  className="w-full h-full object-cover rounded-xl"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="space-y-3 text-center sm:text-left">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-amarillo-dpm">Símbolo del Club</span>
+                <h3 className="text-2xl font-black">Conoce a Chinquihuin</h3>
+                <p className="text-xs sm:text-sm text-gray-300">
+                  El simpático lobo marino que alienta sin descanso en el Estadio Chinquihue y alegra a toda la familia albiverde.
+                </p>
+                <a 
+                  href="https://www.instagram.com/chinquihuin/" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="inline-block text-xs font-bold text-amarillo-dpm hover:underline pt-1"
+                >
+                  Seguir en Instagram @chinquihuin &rarr;
+                </a>
+              </div>
+            </div>
+
+            {/* DPM TV / Contenido Audiovisual */}
+            <div className="rounded-3xl bg-slate-900 text-white p-8 sm:p-10 shadow-xl border border-white/10 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
+                  Canal Oficial
+                </span>
+                <span className="text-xs text-gray-400">DPM Chile TV</span>
+              </div>
+              <h3 className="text-2xl font-black">DPM Chile TV & Resúmenes</h3>
+              <p className="text-xs sm:text-sm text-gray-300">
+                Revive los goles, entrevistas exclusivas al cuerpo técnico y la cobertura de cada fecha de la Liga de Ascenso.
+              </p>
+              <div className="pt-2">
+                <a 
+                  href="https://www.youtube.com/@deportespuertomonttoficial" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-colors inline-flex items-center gap-2"
+                >
+                  Ver Videos en YouTube &rarr;
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* SECCIÓN 7: Patrocinadores Oficiales del Velero */}
+      <section className="py-12 bg-slate-950/80 border-t border-white/10 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <p className="text-xs uppercase font-extrabold tracking-widest text-gray-400">
+            Patrocinadores Oficiales
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 opacity-85">
+            <span className="text-sm font-black text-white tracking-wider">CECINAS LLANQUIHUE</span>
+            <span className="text-sm font-black text-white tracking-wider">OXXEAN</span>
+            <span className="text-sm font-black text-white tracking-wider">NACHIPA</span>
+            <span className="text-sm font-black text-white tracking-wider">ANDES SALUD</span>
+            <span className="text-sm font-black text-white tracking-wider">SALMOVAC</span>
+            <span className="text-sm font-black text-white tracking-wider">TICKETPLUS</span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
