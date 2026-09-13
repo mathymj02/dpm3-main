@@ -16,8 +16,14 @@
  */
 package com.dpm;
 
+import com.dpm.model.Usuario;
+import com.dpm.model.enums.Rol;
+import com.dpm.repository.UsuarioRepository;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @SpringBootApplication es una anotación de conveniencia que encapsula:
@@ -31,5 +37,31 @@ public class DpmApplication {
     public static void main(String[] args) {
         // Ejecuta la aplicación y arranca el servidor web en el puerto configurado (8080)
         SpringApplication.run(DpmApplication.class, args);
+    }
+
+    /**
+     * Sembrador automático que garantiza que el usuario Administrador (admin@dpm.cl / admin123)
+     * siempre exista en la base de datos con su contraseña encriptada correctamente con BCrypt.
+     */
+    @Bean
+    public CommandLineRunner initAdminUser(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            usuarioRepository.findByEmail("admin@dpm.cl").ifPresentOrElse(
+                admin -> {
+                    admin.setPasswordHash(passwordEncoder.encode("admin123"));
+                    admin.setRol(Rol.ADMIN);
+                    usuarioRepository.save(admin);
+                },
+                () -> {
+                    Usuario admin = Usuario.builder()
+                            .nombre("Administrador DPM")
+                            .email("admin@dpm.cl")
+                            .passwordHash(passwordEncoder.encode("admin123"))
+                            .rol(Rol.ADMIN)
+                            .build();
+                    usuarioRepository.save(admin);
+                }
+            );
+        };
     }
 }
