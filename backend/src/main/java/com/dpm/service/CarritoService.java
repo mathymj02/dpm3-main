@@ -90,7 +90,7 @@ public class CarritoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado."));
 
         // Validar que el producto se pueda vender
-        if (!producto.getActivo() || producto.getStock() < request.getCidad()) {
+        if (!producto.getActivo() || producto.getStock() < request.getCantidad()) {
             throw new BadRequestException("Producto no disponible o stock insuficiente.");
         }
 

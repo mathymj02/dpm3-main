@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ============================================================================
   Archivo: pom.xml
@@ -19,7 +20,6 @@
   Las dependencias están enfocadas en la creación de una API REST segura con acceso a DB.
   ============================================================================
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -113,6 +113,20 @@
 
     <build>
         <plugins>
+            <!-- Plugin de compilación de Maven configurado con el procesador de anotaciones de Lombok -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <!-- Plugin de Spring Boot para empaquetar el proyecto como un JAR ejecutable -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
