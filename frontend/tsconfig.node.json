@@ -1,0 +1,32 @@
+/**
+ * ============================================================================
+ * Archivo: tsconfig.node.json
+ * Proyecto: DPM Pro - Club Deportes Puerto Montt
+ * ============================================================================
+ * 
+ * ¿QUÉ HACE ESTE ARCHIVO?
+ * Configuración de TypeScript específica para los archivos que se ejecutan
+ * en el entorno de Node.js (principalmente herramientas de construcción).
+ * 
+ * ¿POR QUÉ ESTA TECNOLOGÍA?
+ * En un proyecto Vite, el código de configuración (`vite.config.ts`) se ejecuta
+ * en Node, mientras que el código de la app (`src/`) se ejecuta en el navegador.
+ * Para evitar conflictos de tipos (como qué significa `module`), TypeScript
+ * recomienda separar estas configuraciones.
+ * 
+ * DECISIONES DE DISEÑO:
+ * - "include": Solo incluye "vite.config.ts", ya que es el único archivo
+ *   que necesita compilarse con configuración de Node.js.
+ * ============================================================================
+ */
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "include": ["vite.config.ts"]
+}
