@@ -38,16 +38,24 @@ export const Registro = () => {
         email: data.email,
         password: data.password
       });
-      toastSuccess('¡Registro exitoso! Bienvenido.');
+      toastSuccess('¡Registro exitoso! Bienvenido a DPM.');
       navigate('/');
-    } catch (error) {
-      toastError('Error al registrarse. El correo podría estar en uso.');
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        toastError(error.response.data.message);
+      } else if (error.response?.data?.error) {
+        toastError(error.response.data.error);
+      } else if (error.message === 'Network Error' || !error.response) {
+        toastError('No se pudo conectar con el servidor backend (puerto 8080). Asegúrate de que esté iniciado.');
+      } else {
+        toastError('No se pudo completar el registro. Verifica los datos ingresados.');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8 relative">
-      <div className="absolute inset-0 z-0 opacity-30 bg-[url('https://upload.wikimedia.org/wikipedia/commons/4/4b/Estadio_Chinquihue_2.jpg')] bg-cover bg-center"></div>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div className="absolute inset-0 z-0 opacity-40 bg-[url('/images/EstadioChinquihue.png')] bg-cover bg-center"></div>
       
       <Card className="max-w-md w-full p-8 relative z-10 bg-white/95 backdrop-blur">
         <div>

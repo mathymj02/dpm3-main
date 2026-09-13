@@ -35,9 +35,9 @@ export const Novedades = () => {
         setNovedades(response.data);
       } catch (error) {
         setNovedades([
-          { id: '1', titulo: '¡Gran victoria en casa!', contenido: 'El equipo demostró su jerarquía frente a un estadio lleno. Los goles fueron obra de Juan Pérez y Luis Martínez, asegurando 3 puntos vitales para el campeonato.', imagenUrl: 'https://via.placeholder.com/600x400', fechaPublicacion: '2025-01-10', autorNombre: 'Comunicaciones DPM' },
-          { id: '2', titulo: 'Nuevos abonos disponibles', contenido: 'Asegura tu lugar en el Chinquihue para toda la temporada 2025. Los abonos ya están a la venta con descuentos especiales para antiguos socios.', imagenUrl: 'https://via.placeholder.com/600x400', fechaPublicacion: '2025-01-08', autorNombre: 'Comunicaciones DPM' },
-          { id: '3', titulo: 'Amistoso confirmado', contenido: 'Nos preparamos para la temporada con un partido internacional. El equipo viajará a Argentina para medirse contra un rival de primera división.', imagenUrl: 'https://via.placeholder.com/600x400', fechaPublicacion: '2025-01-05', autorNombre: 'Comunicaciones DPM' },
+          { id: '1', titulo: 'Deportes Puerto Montt denuncia robo de balones desde Estadio Chinquihue', contenido: '¡35 balones profesionales de fútbol, propiedad del plantel de Deportes Puerto Montt, fueron sustraídos desde el Estadio Bicentenario de Chinquihue! El club ya presentó las denuncias pertinentes ante Carabineros de Chile.', imagenUrl: '/images/robo-balon.jpg', fechaPublicacion: '06-06-2025', autorNombre: 'Comunicaciones DPM' },
+          { id: '2', titulo: 'Inauguración de Sala de Acondicionamiento Físico en el Chinquihue', contenido: 'Este lunes, Deportes Puerto Montt llevó a cabo la inauguración de una moderna sala de musculación en el Estadio Regional de Chinquihue, equipada con tecnología de punta para la preparación de los futbolistas albiverdes.', imagenUrl: '/images/novedades1.jpg', fechaPublicacion: '11-03-2025', autorNombre: 'Comunicaciones DPM' },
+          { id: '3', titulo: 'Partimos con un triunfo la temporada: 4 a cero a Brujas de Salamanca', contenido: 'Con un contundente triunfo debutó Deportes Puerto Montt en el campeonato de la Segunda División Profesional del fútbol chileno, goleando en condición de local y desatando la fiesta en las tribunas del Chinquihue.', imagenUrl: '/images/novedad3.jpeg', fechaPublicacion: '03-07-2025', autorNombre: 'Comunicaciones DPM' },
         ]);
       } finally {
         setLoading(false);
@@ -50,14 +50,22 @@ export const Novedades = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-bold text-azul-dpm mb-10 text-center">Novedades</h1>
+      <h1 className="text-4xl font-extrabold text-white drop-shadow-md mb-10 text-center">Novedades Institucionales</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {novedades.map((nov, i) => (
           <motion.div key={nov.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-            <Card className="h-full flex flex-col">
+            <Card className="h-full flex flex-col overflow-hidden bg-white/95 backdrop-blur shadow-xl hover:shadow-2xl transition">
               {/* object-cover asegura un corte perfecto sin distorsionar */}
-              <img src={nov.imagenUrl} alt={nov.titulo} className="w-full h-56 object-cover" />
+              <img 
+                src={nov.imagenUrl} 
+                alt={nov.titulo} 
+                className="w-full h-56 object-cover bg-gray-200" 
+                onError={(e) => {
+                  // Fallback automático si la URL remota fallara
+                  (e.target as HTMLImageElement).src = '/images/robo-balon.jpg';
+                }}
+              />
               
               <div className="p-6 flex flex-col flex-grow">
                 <span className="text-sm text-verde-dpm font-bold mb-2">{nov.fechaPublicacion}</span>

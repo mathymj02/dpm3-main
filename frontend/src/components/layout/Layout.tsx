@@ -28,17 +28,30 @@ import { Footer } from './Footer';
 
 export const Layout = () => {
   return (
-    // Configuración Flexbox para el truco del "Sticky Footer"
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      {/* Contenedor principal que se expande */}
-      <main className="flex-grow">
-        {/* Aquí React Router inyectará los componentes de cada ruta hija */}
-        <Outlet />
-      </main>
-      
-      <Footer />
+    <div className="min-h-screen flex flex-col relative text-gray-900">
+      {/* Fondo global panorámico del Estadio Chinquihue con overlay cinematográfico */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-fixed pointer-events-none"
+        style={{
+          backgroundImage: "url('/images/EstadioChinquihue.png')"
+        }}
+      >
+        {/* Overlay con tinte azul institucional y desenfoque sutil para máxima legibilidad */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/85 via-azul-dpm/80 to-slate-950/90 backdrop-blur-[2px]" />
+      </div>
+
+      {/* Contenedor interactivo sobre el fondo */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Navbar />
+        
+        {/* Contenedor principal que se expande */}
+        <main className="flex-grow">
+          {/* Aquí React Router inyectará los componentes de cada ruta hija */}
+          <Outlet />
+        </main>
+        
+        <Footer />
+      </div>
     </div>
   );
 };

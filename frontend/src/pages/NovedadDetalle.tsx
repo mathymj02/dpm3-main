@@ -36,14 +36,34 @@ export const NovedadDetalle = () => {
         const response = await api.get(`/novedades/${id}`);
         setNovedad(response.data);
       } catch (error) {
-        setNovedad({
-          id: id || '1', 
-          titulo: '¡Gran victoria en casa!', 
-          contenido: 'El equipo demostró su jerarquía frente a un estadio lleno. Los goles fueron obra de Juan Pérez y Luis Martínez, asegurando 3 puntos vitales para el campeonato. La hinchada no paró de alentar en los 90 minutos, creando un ambiente espectacular en el Chinquihue.\n\nEl entrenador destacó la entrega del equipo: "Es un triunfo de todos, del grupo que se ha esforzado muchísimo en la semana". El próximo partido será en calidad de visitante.', 
-          imagenUrl: 'https://via.placeholder.com/1200x600', 
-          fechaPublicacion: '2025-01-10', 
-          autorNombre: 'Comunicaciones DPM'
-        });
+        // Fallback enriquecido según el ID solicitado
+        const mockArticles: Record<string, Novedad> = {
+          '1': {
+            id: '1',
+            titulo: 'Deportes Puerto Montt denuncia robo de balones desde Estadio Chinquihue',
+            contenido: '¡35 balones profesionales de fútbol, propiedad del plantel de Deportes Puerto Montt, fueron sustraídos desde el Estadio Bicentenario de Chinquihue!\n\nEl club ya presentó las denuncias pertinentes ante Carabineros de Chile para dar con los responsables de este lamentable hecho que afecta directamente los entrenamientos del primer equipo.\n\nDesde la directiva hicieron un llamado a la comunidad a no adquirir estos balones en el comercio informal y a denunciar cualquier antecedente a las autoridades policiales.',
+            imagenUrl: '/images/robo-balon.jpg',
+            fechaPublicacion: '06-06-2025',
+            autorNombre: 'Comunicaciones DPM'
+          },
+          '2': {
+            id: '2',
+            titulo: 'Inauguración de Sala de Acondicionamiento Físico en el Chinquihue',
+            contenido: 'Este lunes, Deportes Puerto Montt llevó a cabo la inauguración de una moderna sala de musculación en el Estadio Regional de Chinquihue.\n\nEl nuevo recinto cuenta con equipamiento de alta tecnología para el trabajo de fuerza, prevención de lesiones y acondicionamiento cardiovascular de nuestros deportistas.\n\n"Esta inversión marca un antes y un después en la preparación de nuestros futbolistas", destacó el cuerpo técnico.',
+            imagenUrl: '/images/novedades1.jpg',
+            fechaPublicacion: '11-03-2025',
+            autorNombre: 'Comunicaciones DPM'
+          },
+          '3': {
+            id: '3',
+            titulo: 'Partimos con un triunfo la temporada: 4 a cero a Brujas de Salamanca',
+            contenido: 'Con un contundente triunfo debutó Deportes Puerto Montt en el campeonato de la Segunda División Profesional del fútbol chileno.\n\nEl Velero dominó de principio a fin las acciones en el Estadio Regional de Chinquihue, deleitando a los miles de hinchas albiverdes que llegaron a alentar en una tarde inolvidable.\n\nLos goles fueron convertidos tras sólidas jugadas asociadas que confirman el gran momento y preparación del plantel.',
+            imagenUrl: '/images/novedad3.jpeg',
+            fechaPublicacion: '03-07-2025',
+            autorNombre: 'Comunicaciones DPM'
+          }
+        };
+        setNovedad(mockArticles[id || '1'] || mockArticles['1']);
       } finally {
         setLoading(false);
       }
@@ -52,24 +72,24 @@ export const NovedadDetalle = () => {
   }, [id]);
 
   if (loading) return <Spinner />;
-  if (!novedad) return <div className="text-center py-20 text-xl">Noticia no encontrada</div>;
+  if (!novedad) return <div className="text-center py-20 text-xl text-white">Noticia no encontrada</div>;
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <button 
         onClick={() => navigate('/novedades')}
-        className="mb-6 text-verde-dpm hover:text-azul-dpm font-medium flex items-center gap-2"
+        className="mb-6 bg-white/90 hover:bg-white text-verde-dpm px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow transition"
       >
         &larr; Volver a Novedades
       </button>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-8 md:p-12">
+        <h1 className="text-3xl md:text-5xl font-extrabold text-azul-dpm mb-6 leading-tight">
           {novedad.titulo}
         </h1>
         
-        <div className="flex items-center gap-4 text-gray-500 mb-8 border-b pb-4">
-          <span>Por <span className="font-bold text-gray-700">{novedad.autorNombre}</span></span>
+        <div className="flex items-center gap-4 text-gray-500 mb-8 border-b pb-4 text-sm font-medium">
+          <span>Por <span className="font-bold text-verde-dpm">{novedad.autorNombre}</span></span>
           <span>&bull;</span>
           <span>{novedad.fechaPublicacion}</span>
         </div>
@@ -77,10 +97,13 @@ export const NovedadDetalle = () => {
         <img 
           src={novedad.imagenUrl} 
           alt={novedad.titulo} 
-          className="w-full rounded-xl shadow-lg mb-10 object-cover max-h-[500px]"
+          className="w-full rounded-xl shadow-lg mb-10 object-cover max-h-[500px] bg-gray-100"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = '/images/robo-balon.jpg';
+          }}
         />
 
-        <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
+        <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed text-lg">
           {novedad.contenido}
         </div>
       </motion.div>

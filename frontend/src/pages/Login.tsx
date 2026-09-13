@@ -34,14 +34,20 @@ export const Login = () => {
       await login(data); // Llama al contexto de auth que hace la petición
       toastSuccess('¡Bienvenido a DPM!');
       navigate('/'); // Redirige al inicio
-    } catch (error) {
-      toastError('Error al iniciar sesión. Verifica tus credenciales.');
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 400) {
+        toastError('Credenciales incorrectas. Verifica tu correo y contraseña.');
+      } else if (error.message === 'Network Error' || !error.response) {
+        toastError('No se pudo conectar con el servidor backend (puerto 8080). Asegúrate de que esté iniciado.');
+      } else {
+        toastError('Error al iniciar sesión. Intenta nuevamente.');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8 relative">
-      <div className="absolute inset-0 z-0 opacity-30 bg-[url('https://upload.wikimedia.org/wikipedia/commons/4/4b/Estadio_Chinquihue_2.jpg')] bg-cover bg-center"></div>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div className="absolute inset-0 z-0 opacity-40 bg-[url('/images/EstadioChinquihue.png')] bg-cover bg-center"></div>
       
       {/* Contenedor difuminado (backdrop-blur) sobre el fondo */}
       <Card className="max-w-md w-full p-8 relative z-10 bg-white/95 backdrop-blur">
