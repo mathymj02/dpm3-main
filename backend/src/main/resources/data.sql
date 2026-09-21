@@ -21,11 +21,11 @@ VALUES ('admin@dpm.cl', 'Administrador DPM', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAg
 -- ============================================================================
 INSERT INTO jugador (nombre, nacionalidad, posicion, edad, foto_url, descripcion, activo) VALUES
 ('Kevin Catalán', 'Chile', 0, 27, '/images/jugador-5.png', '🧱 Muro en el arco: imbatible bajo presión con reflejos felinos y gran juego aéreo.', true),
-('Carlos Rodríguez', 'Chile', 2, 32, '/images/arnaldo-castillo-850x400.jpg', '🧠 Líder táctico: excelente distribución en el mediocampo y cobertura impecable.', true),
+('Carlos Rodríguez', 'Chile', 2, 32, '/images/jugador-rodriguez.jpg', '🧠 Líder táctico: excelente distribución en el mediocampo y cobertura impecable.', true),
 ('Vicente Yáñez', 'Chile', 1, 29, '/images/jugadores-1.png', '⚡ Velocidad y compromiso defensivo por la banda diestra.', true),
-('Maximiliano Riveros', 'Chile', 2, 29, '/images/download (1).jpg', '🦁 Líder silencioso, precisión en pases y gran dominio de balón.', true),
-('Kevin Flores', 'Chile', 1, 30, '/images/download.jpg', '🧱 Anticipación férrea y gran poderío físico en la zaga.', true),
-('Yakob Yousef', 'Chile', 3, 26, '/images/images (1).jpg', '⚡ Desborde constante, presión alta y definición letal.', true),
+('Maximiliano Riveros', 'Chile', 2, 29, '/images/jugador-riveros.jpg', '🦁 Líder silencioso, precisión en pases y gran dominio de balón.', true),
+('Kevin Flores', 'Chile', 1, 30, '/images/jugador-flores.jpg', '🧱 Anticipación férrea y gran poderío físico en la zaga.', true),
+('Yakob Yousef', 'Chile', 3, 26, '/images/jugador-yousef.jpg', '⚡ Desborde constante, presión alta y definición letal.', true),
 ('Sebastián Torres', 'Chile', 1, 27, '/images/jugador-3.png', '🚀 Velocidad, centros quirúrgicos y marca implacable.', true),
 ('Daniel Bahamonde', 'Chile', 1, 23, '/images/jugadores-6.png', '🏃‍♂️ Motor del carril izquierdo con proyección y repliegue continuo.', true),
 ('Giovanni Bustos', 'Chile', 2, 25, '/images/jugador-4.png', '🎩 Visión de juego privilegiada, control de tiempos y presión.', true),
@@ -48,14 +48,14 @@ INSERT INTO producto (nombre, precio, imagen_url, stock, categoria, activo, crea
 -- ============================================================================
 INSERT INTO posicion (equipo, escudo_url, pj, pg, pe, pp, gf, gc, dg, pts, temporada) VALUES
 ('Deportes Puerto Montt', '/images/logo-deportes-puertomontt.png', 12, 7, 3, 2, 22, 12, 10, 24, 2025),
-('San Marcos de Arica', '/images/images.jpg', 12, 6, 3, 3, 18, 13, 5, 21, 2025),
-('Deportes Valdivia', '/images/download (3).png', 12, 5, 4, 3, 20, 16, 4, 19, 2025),
-('Deportes Melipilla', '/images/images.jpg', 12, 5, 2, 5, 17, 16, 1, 17, 2025),
-('Provincial Osorno', '/images/2IYaruYV_400x400.jpg', 12, 4, 4, 4, 15, 14, 1, 16, 2025),
-('Deportes Concepción', '/images/download.png', 12, 4, 3, 5, 14, 16, -2, 15, 2025),
-('Deportes Temuco', '/images/download (1).png', 12, 4, 2, 6, 13, 17, -4, 14, 2025),
-('Magallanes', '/images/download (2).png', 12, 3, 3, 6, 12, 17, -5, 12, 2025),
-('Rangers de Talca', '/images/images.png', 12, 3, 1, 8, 10, 21, -11, 10, 2025),
+('San Marcos de Arica', '/images/escudo-sanmarcos.jpg', 12, 6, 3, 3, 18, 13, 5, 21, 2025),
+('Deportes Valdivia', '/images/escudo-valdivia.png', 12, 5, 4, 3, 20, 16, 4, 19, 2025),
+('Deportes Melipilla', '/images/escudo-sanmarcos.jpg', 12, 5, 2, 5, 17, 16, 1, 17, 2025),
+('Provincial Osorno', '/images/escudo-osorno.jpg', 12, 4, 4, 4, 15, 14, 1, 16, 2025),
+('Deportes Concepción', '/images/escudo-concepcion.png', 12, 4, 3, 5, 14, 16, -2, 15, 2025),
+('Deportes Temuco', '/images/escudo-temuco.png', 12, 4, 2, 6, 13, 17, -4, 14, 2025),
+('Magallanes', '/images/escudo-magallanes.png', 12, 3, 3, 6, 12, 17, -5, 12, 2025),
+('Rangers de Talca', '/images/escudo-rangers.png', 12, 3, 1, 8, 10, 21, -11, 10, 2025),
 ('Iberia Los Ángeles', '/images/club-atletico-iberia.png', 12, 2, 2, 8, 9, 21, -12, 8, 2025);
 
 -- ============================================================================

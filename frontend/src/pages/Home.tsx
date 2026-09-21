@@ -47,9 +47,9 @@ export const Home = () => {
           ]})),
           api.get('/jugadores').catch(() => ({ data: [
             { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-5.png', descripcion: 'Muro en el arco con reflejos felinos.' },
-            { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chileno', fotoUrl: '/images/arnaldo-castillo-850x400.jpg', descripcion: 'Líder en el mediocampo y orden táctico.' },
+            { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-rodriguez.jpg', descripcion: 'Líder en el mediocampo y orden táctico.' },
             { id: '3', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 29, nacionalidad: 'Chileno', fotoUrl: '/images/jugadores-1.png', descripcion: 'Velocidad y compromiso defensivo.' },
-            { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chileno', fotoUrl: '/images/download (1).jpg', descripcion: 'Líder silencioso y gran juego de pies.' }
+            { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-riveros.jpg', descripcion: 'Líder silencioso y gran juego de pies.' }
           ]})),
           api.get('/productos').catch(() => ({ data: [
             { id: '1', nombre: 'Polera Oficial DPM', precio: 15000, imagenUrl: '/images/polera.jpg', stock: 50, categoria: 'Indumentaria' },
