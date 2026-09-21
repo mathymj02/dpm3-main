@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaCheckCircle, FaShieldAlt, FaQrcode, FaStar, FaAward, FaUsers, FaChevronRight, FaDownload } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toastSuccess, toastInfo } from '../components/ui/Toast';
 
 // Convenios reales extraídos de dpmchile.cl
@@ -319,27 +319,37 @@ export const Socios: React.FC = () => {
                 </div>
               </div>
 
-              {/* Código QR Simulado */}
-              <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/95 text-slate-950 shadow-inner">
-                <FaQrcode className="w-14 h-14 text-slate-900" />
-                <span className="text-[8px] font-mono font-black mt-0.5">VALIDAR</span>
+              {/* Código QR Dinámico del Carnet de Socio */}
+              <div className="flex flex-col items-center justify-center p-1.5 rounded-xl bg-white text-slate-950 shadow-md">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=DPM-SOCIO-2026-0842&bgcolor=ffffff&color=0b2545&margin=1`}
+                  alt="QR Carnet Socio"
+                  className="w-16 h-16 object-contain rounded"
+                />
+                <span className="text-[7px] font-mono font-black mt-0.5 tracking-wider text-azul-dpm">SOCIO 2026</span>
               </div>
             </div>
 
             {/* Pie del Carnet */}
             <div className="flex items-center justify-between border-t border-white/15 pt-2 relative z-10 text-[9px] text-gray-300">
               <span>Estadio Chinquihue · Puerto Montt</span>
-              <span className="font-mono">Vence: 31/12/2026</span>
+              <span className="font-mono text-emerald-400 font-bold">Cuota: AL DÍA (2026)</span>
             </div>
           </div>
 
-          <div className="flex justify-center gap-3 mt-4">
+          <div className="flex flex-wrap justify-center gap-3 mt-4">
             <button 
               onClick={() => toastSuccess('Carnet Digital guardado en caché para acceso sin conexión.')}
               className="inline-flex items-center gap-1.5 text-xs text-amarillo-dpm hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg border border-white/10"
             >
               <FaDownload className="w-3.5 h-3.5" /> Descargar Credencial
             </button>
+            <Link
+              to="/validador?codigo=DPM-SOCIO-2026-0842"
+              className="inline-flex items-center gap-1.5 text-xs bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold px-4 py-2 rounded-lg shadow transition"
+            >
+              <FaQrcode className="w-3.5 h-3.5" /> Probar Carnet en Validador de Torniquetes
+            </Link>
           </div>
         </div>
       </section>
