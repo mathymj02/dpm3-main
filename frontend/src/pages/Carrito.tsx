@@ -28,14 +28,62 @@ import { toastSuccess } from '../components/ui/Toast';
 import { FaTrash, FaShoppingCart, FaTicketAlt, FaShieldAlt, FaTruck } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
 import { TicketModal } from '../components/tickets/TicketModal';
+import { BoletaDespachoModal } from '../components/tickets/BoletaDespachoModal';
+
+// Partidos oficiales de la temporada 2026 en el Chinquihue
+const fixturePartidos = [
+  { 
+    id: 'temuco', 
+    rival: 'Deportes Temuco', 
+    torneo: 'Fecha 22 • Campeonato Ascenso', 
+    fecha: 'Domingo 28 de Septiembre, 2026', 
+    hora: '18:00 hrs', 
+    tipo: 'Clásico del Sur',
+    sectorDefecto: 'Galería Sur - Los Hijos del Temporal',
+    puerta: 'Puerta 2 - Acceso Principal'
+  },
+  { 
+    id: 'osorno', 
+    rival: 'Provincial Osorno', 
+    torneo: 'Fecha 23 • Campeonato Ascenso', 
+    fecha: 'Sábado 04 de Octubre, 2026', 
+    hora: '16:00 hrs', 
+    tipo: 'Clásico Regional del Sur',
+    sectorDefecto: 'Galería Sur - Los Hijos del Temporal',
+    puerta: 'Puerta 2 - Acceso Principal'
+  },
+  { 
+    id: 'concepcion', 
+    rival: 'Deportes Concepción', 
+    torneo: 'Fecha 24 • Campeonato Ascenso', 
+    fecha: 'Domingo 12 de Octubre, 2026', 
+    hora: '17:30 hrs', 
+    tipo: 'Duelo Tradicional ANFP',
+    sectorDefecto: 'Tribuna Chinquihue Techada',
+    puerta: 'Puerta 1 - Acceso Tribuna'
+  }
+];
+
+const sectoresDisponibles = [
+  { id: 'galeria', nombre: 'Galería Sur (Los Hijos del Temporal)', precio: 7000, puerta: 'Puerta 2' },
+  { id: 'tribuna', nombre: 'Tribuna Chinquihue Techada', precio: 14000, puerta: 'Puerta 1' },
+  { id: 'vip', nombre: 'Velero VIP / Palco Oficial', precio: 22000, puerta: 'Acceso Palco Exclusivo' }
+];
 
 export const Carrito = () => {
   const [carrito, setCarrito] = useState<CarritoResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Estados para el Ticket Modal y simulación de entrada digital
+  // Selector de próximo rival para compra de entradas
+  const [partidoElegido, setPartidoElegido] = useState(fixturePartidos[0]);
+  const [sectorElegido, setSectorElegido] = useState(sectoresDisponibles[0]);
+
+  // Modales de confirmación
   const [modalTicketOpen, setModalTicketOpen] = useState(false);
+  const [modalBoletaOpen, setModalBoletaOpen] = useState(false);
+
+  // Estados para Ticket y Boleta generados
   const [ticketGenerado, setTicketGenerado] = useState({
     codigo: 'DPM-TKT-2026-8942-A8F1',
     partido: 'Deportes Puerto Montt vs Deportes Temuco',
@@ -51,19 +99,31 @@ export const Carrito = () => {
     precio: 7000
   });
 
+  const [ordenGenerada, setOrdenGenerada] = useState({
+    numeroOrden: 'ORD-DPM-2026-1049',
+    fecha: 'Hoy, 15:30 hrs',
+    cliente: user?.nombre || 'Hincha Albiverde',
+    email: user?.email || 'hincha@dpm.cl',
+    items: [] as Array<{ nombre: string; cantidad: number; precio: number; subtotal: number }>,
+    total: 0,
+    direccionEnvio: 'Av. Diego Portales 1240, Puerto Montt, Región de Los Lagos',
+    numeroSeguimiento: 'CHX-774921-CL',
+    metodoEntrega: 'Chilexpress Express (24 a 48 hrs)'
+  });
+
   const fetchCarrito = async () => {
     try {
       const response = await api.get('/carrito');
       setCarrito(response.data);
     } catch (error) {
-      // Fallback para pruebas con entrada al Chinquihue incluida
+      // Carrito de prueba: Producto de tienda por defecto para probar boleta
       setCarrito({
         id: '1',
         items: [
-          { id: '1', productoNombre: 'Entrada Estadio Chinquihue (vs Deportes Temuco)', cantidad: 1, precioUnitario: 7000, subtotal: 7000 },
-          { id: '2', productoNombre: 'Camiseta Oficial DPM 2026', cantidad: 1, precioUnitario: 39990, subtotal: 39990 }
+          { id: '1', productoNombre: 'Camiseta Oficial DPM Temporada 2026 (Talla L)', cantidad: 1, precioUnitario: 39990, subtotal: 39990 },
+          { id: '2', productoNombre: 'Calcetas Oficiales Albiverdes DPM', cantidad: 1, precioUnitario: 8990, subtotal: 8990 }
         ],
-        total: 46990
+        total: 48980
       });
     } finally {
       setLoading(false);
@@ -86,7 +146,7 @@ export const Carrito = () => {
            items: carrito.items.filter(i => i.id !== itemId),
            total: carrito.items.filter(i => i.id !== itemId).reduce((acc, i) => acc + i.subtotal, 0)
          });
-         toastSuccess('Producto eliminado (Simulado).');
+         toastSuccess('Producto eliminado.');
       }
     }
   };
@@ -94,54 +154,110 @@ export const Carrito = () => {
   const agregarEntradaAlCarrito = () => {
     if (!carrito) return;
     const nuevaEntrada = {
-      id: `item-${Date.now()}`,
-      productoNombre: 'Entrada Galería Sur (vs Deportes Temuco)',
+      id: `item-ticket-${Date.now()}`,
+      productoNombre: `Entrada ${sectorElegido.nombre} (vs ${partidoElegido.rival})`,
       cantidad: 1,
-      precioUnitario: 7000,
-      subtotal: 7000
+      precioUnitario: sectorElegido.precio,
+      subtotal: sectorElegido.precio
     };
     setCarrito({
       ...carrito,
       items: [...carrito.items, nuevaEntrada],
-      total: carrito.total + 7000
+      total: carrito.total + sectorElegido.precio
     });
-    toastSuccess('Entrada agregada al carrito.');
+    toastSuccess(`Entrada agregada para el partido vs ${partidoElegido.rival}.`);
   };
 
   const finalizarCompra = async () => {
-    // Generar código único de boleto con formato DPM oficial
-    const codigoAleatorio = `DPM-TKT-2026-${Math.floor(1000 + Math.random() * 9000)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    if (!carrito || carrito.items.length === 0) return;
 
-    const nuevoTicket = {
-      codigo: codigoAleatorio,
-      partido: 'Deportes Puerto Montt vs Deportes Temuco',
-      estadio: 'Estadio Bicentenario Chinquihue',
-      fecha: 'Domingo 28 de Septiembre, 2026',
-      hora: '18:00 hrs',
-      sector: 'Galería Sur - Los Hijos del Temporal',
-      puerta: 'Puerta 2 - Acceso Principal',
-      asiento: `Sector B - Asiento ${Math.floor(1 + Math.random() * 120)}`,
-      titular: user?.nombre || 'Hincha Albiverde',
-      rut: '18.492.301-8',
-      email: user?.email || 'hincha@dpm.cl',
-      precio: 7000
-    };
+    const tieneEntradas = carrito.items.some(i => i.productoNombre.toLowerCase().includes('entrada'));
+    const itemsProductos = carrito.items.filter(i => !i.productoNombre.toLowerCase().includes('entrada'));
+    const tieneProductosFisicos = itemsProductos.length > 0;
 
-    setTicketGenerado(nuevoTicket);
+    // 1. Si hay entradas para el estadio, generamos el ticket oficial para el rival seleccionado
+    if (tieneEntradas) {
+      const codigoAleatorio = `DPM-TKT-2026-${Math.floor(1000 + Math.random() * 9000)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      
+      // Buscar si en los items hay un rival específico mencionado
+      const itemEntrada = carrito.items.find(i => i.productoNombre.toLowerCase().includes('entrada'));
+      let rivalDetectado = partidoElegido.rival;
+      let fechaDetectada = partidoElegido.fecha;
+      let horaDetectada = partidoElegido.hora;
+      let sectorDetectado = sectorElegido.nombre;
+      let puertaDetectada = sectorElegido.puerta;
 
-    // Guardar en localStorage para que el Validador de Estadio lo reconozca
-    localStorage.setItem('dpm_ultimo_ticket', JSON.stringify(nuevoTicket));
+      fixturePartidos.forEach(p => {
+        if (itemEntrada && itemEntrada.productoNombre.includes(p.rival)) {
+          rivalDetectado = p.rival;
+          fechaDetectada = p.fecha;
+          horaDetectada = p.hora;
+        }
+      });
+
+      const nuevoTicket = {
+        codigo: codigoAleatorio,
+        partido: `Deportes Puerto Montt vs ${rivalDetectado}`,
+        estadio: 'Estadio Bicentenario Chinquihue',
+        fecha: fechaDetectada,
+        hora: horaDetectada,
+        sector: sectorDetectado,
+        puerta: puertaDetectada,
+        asiento: `Sector Tribuna - Asiento ${Math.floor(1 + Math.random() * 140)}`,
+        titular: user?.nombre || 'Hincha Albiverde',
+        rut: '18.492.301-8',
+        email: user?.email || 'hincha@dpm.cl',
+        precio: sectorElegido.precio
+      };
+
+      setTicketGenerado(nuevoTicket);
+      localStorage.setItem('dpm_ultimo_ticket', JSON.stringify(nuevoTicket));
+      setModalTicketOpen(true);
+    }
+
+    // 2. Si hay productos físicos de la tienda (poleras, calcetas, gorros), generamos la orden de despacho
+    if (tieneProductosFisicos) {
+      const numOrden = `ORD-DPM-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      const nuevaOrden = {
+        numeroOrden: numOrden,
+        fecha: new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }),
+        cliente: user?.nombre || 'Hincha Albiverde',
+        email: user?.email || 'hincha@dpm.cl',
+        items: itemsProductos.map(p => ({
+          nombre: p.productoNombre,
+          cantidad: p.cantidad,
+          precio: p.precioUnitario,
+          subtotal: p.subtotal
+        })),
+        total: itemsProductos.reduce((acc, p) => acc + p.subtotal, 0),
+        direccionEnvio: 'Av. Diego Portales 1240, Puerto Montt, Región de Los Lagos',
+        numeroSeguimiento: `CHX-${Math.floor(100000 + Math.random() * 900000)}-CL`,
+        metodoEntrega: 'Chilexpress Courier Express'
+      };
+
+      setOrdenGenerada(nuevaOrden);
+
+      // Si no hubo entradas, abrimos directamente la boleta
+      if (!tieneEntradas) {
+        setModalBoletaOpen(true);
+      }
+    }
 
     try {
       await api.post('/carrito/checkout');
     } catch (error) {
-      // Modo offline o fallback
+      // Modo offline simulado
     }
 
-    // Abrir Modal de E-Ticket para que el hincha lo descargue y vea el correo simulado
-    setModalTicketOpen(true);
+    if (tieneEntradas && tieneProductosFisicos) {
+      toastSuccess('¡Compra mixta procesada! E-Ticket emitido y productos enviados a despacho.');
+    } else if (tieneEntradas) {
+      toastSuccess('¡Entrada de partido emitida con éxito! Tu código QR está listo.');
+    } else {
+      toastSuccess('¡Compra de tienda confirmada! Tu orden de despacho ha sido generada.');
+    }
+
     setCarrito({ id: '1', items: [], total: 0 }); // Vaciar carrito
-    toastSuccess('¡Compra procesada con éxito! Tu E-Ticket ha sido emitido.');
   };
 
   if (loading) return <Spinner />;
@@ -166,21 +282,27 @@ export const Carrito = () => {
             onClick={agregarEntradaAlCarrito}
             className="inline-flex items-center gap-2 bg-azul-dpm text-white font-bold py-2.5 px-6 rounded-full hover:bg-blue-800 transition shadow"
           >
-            <FaTicketAlt /> Comprar Entrada vs Temuco ($7.000)
+            <FaTicketAlt /> Comprar Entrada vs {partidoElegido.rival} (${sectorElegido.precio.toLocaleString('es-CL')})
           </button>
         </div>
 
-        {/* Modal de Ticket si recién compró */}
+        {/* Modales de Confirmación si recién compró */}
         <TicketModal 
           isOpen={modalTicketOpen}
           onClose={() => setModalTicketOpen(false)}
           ticketData={ticketGenerado}
+        />
+        <BoletaDespachoModal
+          isOpen={modalBoletaOpen}
+          onClose={() => setModalBoletaOpen(false)}
+          ordenData={ordenGenerada}
         />
       </div>
     );
   }
 
   const tieneEntrada = carrito.items.some(i => i.productoNombre.toLowerCase().includes('entrada'));
+  const tieneProductosFisicos = carrito.items.some(i => !i.productoNombre.toLowerCase().includes('entrada'));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -193,10 +315,10 @@ export const Carrito = () => {
           </div>
           <div>
             <h3 className="font-bold text-base text-white flex items-center gap-2">
-              Sistema Oficial de E-Tickets con Código QR • Estadio Chinquihue
+              Boletería Oficial & E-Commerce • Club Deportes Puerto Montt
             </h3>
             <p className="text-xs text-sky-200 mt-0.5">
-              Al finalizar tu compra, tus entradas son emitidas al instante con código QR único y enviadas a tu correo electrónico para acceso directo en los torniquetes.
+              Las entradas generan códigos QR únicos válidos para torniquetes en Chinquihue. Las prendas y accesorios generan boleta oficial y orden de despacho por Chilexpress.
             </p>
           </div>
         </div>
@@ -205,15 +327,15 @@ export const Carrito = () => {
           to="/validador"
           className="whitespace-nowrap text-xs bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold px-4 py-2 rounded-xl border border-slate-600 transition flex items-center gap-2"
         >
-          <FaShieldAlt /> Probar Validador de Estadio
+          <FaShieldAlt /> Probar Validador de Torniquetes
         </Link>
       </div>
 
       <h1 className="text-3xl font-bold text-azul-dpm mb-8">Tu Carrito de Compras</h1>
       
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Columna Izquierda: Lista de Productos */}
-        <div className="lg:w-2/3">
+        {/* Columna Izquierda: Lista de Productos y Selector de Entradas */}
+        <div className="lg:w-2/3 space-y-6">
           <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
             <ul className="divide-y divide-gray-200">
               {carrito.items.map(item => (
@@ -250,23 +372,68 @@ export const Carrito = () => {
             </ul>
           </div>
 
-          {/* Si no tiene entrada, ofrecer agregarla */}
-          {!tieneEntrada && (
-            <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FaTicketAlt className="text-verde-dpm text-xl" />
-                <span className="text-xs sm:text-sm text-emerald-950 font-medium">
-                  ¿Vas al estadio? Agrega tu entrada para el clásico del sur vs Temuco por solo $7.000.
-                </span>
+          {/* Selector Dinámico de Entradas Oficiales */}
+          <div className="p-5 bg-gradient-to-br from-slate-900 to-azul-dpm border border-white/10 rounded-2xl text-white space-y-4 shadow-md">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 text-amarillo-dpm font-bold text-sm">
+                <FaTicketAlt /> Boletería Oficial: Próximos Partidos en Chinquihue
               </div>
+              <span className="text-[11px] text-gray-300">Temporada 2026</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Selección de Partido */}
+              <div>
+                <label className="block text-xs font-bold text-gray-300 mb-1">Rival y Fecha</label>
+                <select
+                  value={partidoElegido.id}
+                  onChange={(e) => {
+                    const match = fixturePartidos.find(p => p.id === e.target.value);
+                    if (match) setPartidoElegido(match);
+                  }}
+                  className="w-full bg-slate-800 border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amarillo-dpm"
+                >
+                  {fixturePartidos.map(p => (
+                    <option key={p.id} value={p.id}>
+                      vs {p.rival} ({p.tipo} • {p.fecha.split(',')[0]})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Selección de Sector */}
+              <div>
+                <label className="block text-xs font-bold text-gray-300 mb-1">Sector del Estadio</label>
+                <select
+                  value={sectorElegido.id}
+                  onChange={(e) => {
+                    const sector = sectoresDisponibles.find(s => s.id === e.target.value);
+                    if (sector) setSectorElegido(sector);
+                  }}
+                  className="w-full bg-slate-800 border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amarillo-dpm"
+                >
+                  {sectoresDisponibles.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.nombre} - ${s.precio.toLocaleString('es-CL')} CLP
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <span className="text-xs text-emerald-300">
+                📍 {sectorElegido.nombre} | {partidoElegido.fecha} a las {partidoElegido.hora}
+              </span>
               <button
                 onClick={agregarEntradaAlCarrito}
-                className="text-xs bg-verde-dpm hover:bg-green-700 text-white font-bold px-3 py-1.5 rounded-lg transition"
+                className="text-xs bg-amarillo-dpm hover:bg-yellow-400 text-slate-950 font-black px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5"
               >
-                + Agregar
+                + Agregar Entrada vs {partidoElegido.rival} (${sectorElegido.precio.toLocaleString('es-CL')})
               </button>
             </div>
-          )}
+          </div>
+
         </div>
         
         {/* Columna Derecha: Sidebar Sticky de Resumen */}
@@ -279,10 +446,14 @@ export const Carrito = () => {
             </div>
             <div className="flex justify-between mb-4">
               <span className="text-gray-600 text-sm flex items-center gap-1.5">
-                <FaTruck className="text-gray-400" /> Despacho a Domicilio
+                <FaTruck className="text-gray-400" /> Tipo de Emisión
               </span>
               <span className="text-emerald-600 font-semibold text-xs bg-emerald-50 px-2 py-0.5 rounded">
-                E-Ticket Gratis / Chilexpress
+                {tieneEntrada && tieneProductosFisicos 
+                  ? 'Mixto: E-Ticket + Despacho' 
+                  : tieneEntrada 
+                    ? 'E-Ticket Inmediato QR' 
+                    : 'Despacho Chilexpress'}
               </span>
             </div>
 
@@ -298,23 +469,33 @@ export const Carrito = () => {
 
             <button 
               onClick={finalizarCompra}
-              className="w-full bg-verde-dpm hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition mb-4 shadow-lg shadow-green-700/20 text-base"
+              className="w-full bg-verde-dpm hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition mb-4 shadow-lg shadow-green-700/20 text-base flex items-center justify-center gap-2"
             >
-              Confirmar y Generar Entradas QR
+              {tieneEntrada && tieneProductosFisicos 
+                ? 'Confirmar Compra Mixta' 
+                : tieneEntrada 
+                  ? 'Confirmar y Emitir E-Tickets QR' 
+                  : 'Confirmar Pedido de Tienda & Despacho'}
             </button>
             
             <Link to="/tienda" className="block text-center text-azul-dpm hover:underline font-medium text-sm">
-              ← Seguir Comprando
+              ← Seguir Comprando en la Tienda
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Modal de Visualización del Boleto QR e Información de Correo */}
+      {/* Modales según lo comprado */}
       <TicketModal 
         isOpen={modalTicketOpen}
         onClose={() => setModalTicketOpen(false)}
         ticketData={ticketGenerado}
+      />
+
+      <BoletaDespachoModal
+        isOpen={modalBoletaOpen}
+        onClose={() => setModalBoletaOpen(false)}
+        ordenData={ordenGenerada}
       />
 
     </div>
