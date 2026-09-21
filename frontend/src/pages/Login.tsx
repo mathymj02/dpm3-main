@@ -23,8 +23,8 @@ import { toastSuccess, toastError } from '../components/ui/Toast';
 import { Card } from '../components/ui/Card';
 
 export const Login = () => {
-  // Inicialización de react-hook-form
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginRequest>();
+  // Inicialización de react-hook-form con setValue para auto-completar
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<LoginRequest>();
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -90,10 +90,46 @@ export const Login = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-verde-dpm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-verde-dpm transition"
+              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-verde-dpm hover:bg-green-700 shadow-md transition"
             >
-              Entrar
+              Iniciar Sesión
             </button>
+          </div>
+
+          {/* Accesos Rápidos de Prueba (1 Click) */}
+          <div className="pt-4 border-t border-gray-200">
+            <span className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 text-center">
+              🧪 Accesos Rápidos para Pruebas:
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setValue('email', 'admin@dpm.cl');
+                  setValue('password', 'admin123');
+                  onSubmit({ email: 'admin@dpm.cl', password: 'admin123' });
+                }}
+                className="bg-azul-dpm hover:bg-blue-900 text-white text-xs font-bold py-2 px-3 rounded-lg transition text-center shadow-sm"
+              >
+                🛡️ Modo Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setValue('email', 'hincha@dpm.cl');
+                  setValue('password', 'hincha123');
+                  onSubmit({ email: 'hincha@dpm.cl', password: 'hincha123' });
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded-lg transition text-center shadow-sm"
+              >
+                🎟️ Modo Hincha
+              </button>
+            </div>
+            <div className="mt-3 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-gray-600">
+              <div className="font-semibold text-slate-800">Credenciales por defecto:</div>
+              <div>• <strong>Admin:</strong> admin@dpm.cl / admin123</div>
+              <div>• <strong>Hincha:</strong> hincha@dpm.cl / hincha123</div>
+            </div>
           </div>
         </form>
       </Card>

@@ -39,12 +39,21 @@ export const Home = () => {
     const fetchHomeData = async () => {
       try {
         const [novRes, jugRes, prodRes] = await Promise.all([
-          // Si falla la API, inyectamos Fallback Data con imágenes reales locales del club
-          api.get('/novedades').catch(() => ({ data: [
-            { id: '1', titulo: 'Deportes Puerto Montt denuncia robo de balones', contenido: '35 balones profesionales de fútbol fueron sustraídos desde el Estadio Bicentenario de Chinquihue...', imagenUrl: '/images/robo-balon.jpg', fechaPublicacion: '06-06-2025', autorNombre: 'Comunicaciones DPM' },
-            { id: '2', titulo: 'Nueva Sala de acondicionamiento físico en el Chinquihue', contenido: 'Se trata de una moderna sala de musculación para el plantel profesional...', imagenUrl: '/images/novedades1.jpg', fechaPublicacion: '11-03-2025', autorNombre: 'Comunicaciones DPM' },
-            { id: '3', titulo: 'Gran debut 2025: 4 a cero a Brujas de Salamanca', contenido: 'Con un contundente triunfo debutó Deportes Puerto Montt en la Segunda División...', imagenUrl: '/images/novedad3.jpeg', fechaPublicacion: '03-07-2025', autorNombre: 'Comunicaciones DPM' },
-          ]})),
+          // Si falla la API, inyectamos noticias administradas o Fallback Data
+          api.get('/novedades').catch(() => {
+            const savedNews = localStorage.getItem('dpm_novedades_data');
+            if (savedNews) {
+              try {
+                const parsed = JSON.parse(savedNews);
+                if (Array.isArray(parsed) && parsed.length > 0) return { data: parsed };
+              } catch {}
+            }
+            return { data: [
+              { id: '1', titulo: 'Deportes Puerto Montt denuncia robo de balones', contenido: '35 balones profesionales de fútbol fueron sustraídos desde el Estadio Bicentenario de Chinquihue...', imagenUrl: '/images/robo-balon.jpg', fechaPublicacion: '06-06-2025', autorNombre: 'Comunicaciones DPM' },
+              { id: '2', titulo: 'Nueva Sala de acondicionamiento físico en el Chinquihue', contenido: 'Se trata de una moderna sala de musculación para el plantel profesional...', imagenUrl: '/images/novedades1.jpg', fechaPublicacion: '11-03-2025', autorNombre: 'Comunicaciones DPM' },
+              { id: '3', titulo: 'Gran debut 2025: 4 a cero a Brujas de Salamanca', contenido: 'Con un contundente triunfo debutó Deportes Puerto Montt en la Segunda División...', imagenUrl: '/images/novedad3.jpeg', fechaPublicacion: '03-07-2025', autorNombre: 'Comunicaciones DPM' },
+            ]};
+          }),
           api.get('/jugadores').catch(() => ({ data: [
             { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-5.png', descripcion: 'Muro en el arco con reflejos felinos.' },
             { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-rodriguez.jpg', descripcion: 'Líder en el mediocampo y orden táctico.' },
