@@ -440,6 +440,52 @@ export const AdminDashboard: React.FC = () => {
         </Link>
       </div>
 
+      {/* Widget Dirigencial: Operación de Estadio & Aforo en Vivo (Estadio Seguro ANFP) */}
+      <div className="bg-gradient-to-r from-slate-900 via-azul-dpm to-slate-950 rounded-2xl p-6 border border-emerald-500/30 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="space-y-2 max-w-xl">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+              Operación Estadio Bicentenario Chinquihue • En Tiempo Real
+            </span>
+          </div>
+          <h3 className="text-xl sm:text-2xl font-black text-white">
+            Control de Aforo Oficial: <span className="text-amarillo-dpm">4.218 / 10.000</span> Asistentes (42,2%)
+          </h3>
+          <p className="text-xs text-gray-300 leading-relaxed">
+            Monitoreo en vivo conectado a la API de torniquetes. Cumplimiento de normativa de Estadio Seguro y Delegación Presidencial Los Lagos.
+          </p>
+          {/* Barra de progreso de aforo */}
+          <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/10 mt-2">
+            <div 
+              className="bg-gradient-to-r from-emerald-500 to-amarillo-dpm h-full rounded-full transition-all duration-1000" 
+              style={{ width: '42.2%' }}
+            ></div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap sm:flex-nowrap gap-4 shrink-0">
+          <div className="bg-white/10 rounded-xl p-3.5 border border-white/10 text-center min-w-[130px]">
+            <span className="text-[10px] text-gray-400 uppercase font-semibold block">Socios al Día</span>
+            <span className="text-lg font-black text-white">1.284</span>
+            <span className="text-[10px] text-emerald-400 block font-bold">+32 este mes</span>
+          </div>
+
+          <div className="bg-white/10 rounded-xl p-3.5 border border-white/10 text-center min-w-[130px]">
+            <span className="text-[10px] text-gray-400 uppercase font-semibold block">Recaudación Partido</span>
+            <span className="text-lg font-black text-amarillo-dpm font-mono">$29.5M CLP</span>
+            <span className="text-[10px] text-gray-300 block">Entradas + Abonos</span>
+          </div>
+
+          <Link
+            to="/validador"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-xs sm:text-sm self-center whitespace-nowrap"
+          >
+            <FaQrcode /> Abrir Validador de Torniquetes
+          </Link>
+        </div>
+      </div>
+
       {/* Navegación por Pestañas */}
       <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
         <div className="border-b border-gray-200 bg-slate-50 px-6">

@@ -67,3 +67,13 @@ INSERT INTO novedad (titulo, contenido, imagen_url, fecha_publicacion, autor_id)
 ('Deportes Puerto Montt denuncia robo de balones', '¡35 balones profesionales de fútbol, propiedad del plantel de Deportes Puerto Montt, fueron sustraídos desde el Estadio Bicentenario de Chinquihue!', '/images/robo-balon.jpg', CURRENT_TIMESTAMP, 1),
 ('Nueva Sala de acondicionamiento físico en el Chinquihue', 'Este lunes, Deportes Puerto Montt llevó a cabo la inauguración de una moderna sala de musculación en el Estadio Regional de Chinquihue para todo el plantel.', '/images/novedades1.jpg', CURRENT_TIMESTAMP, 1),
 ('Partimos con un triunfo la temporada: 4 a cero a Brujas de Salamanca', 'Con un triunfo debutó Deportes Puerto Montt en el campeonato de la Segunda División Profesional del fútbol chileno frente a Salamanca.', '/images/novedad3.jpeg', CURRENT_TIMESTAMP, 1);
+
+-- ============================================================================
+-- 6. ENTRADAS OFICIALES Y CARNETS DE SOCIO (SISTEMA DE TORNIQUETES)
+-- ============================================================================
+INSERT INTO entrada (codigo, tipo, partido, sector, puerta_asignada, asiento, titular, rut, estado, precio, created_at) VALUES
+('DPM-TKT-2026-8942-A8F1', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Galería Sur - Los Hijos del Temporal', 'Puerta 2 - Acceso Principal', 'Sector B - Asiento 42', 'Matías Hincha Albiverde', '18.492.301-8', 'VALIDA', 7000, CURRENT_TIMESTAMP),
+('DPM-TKT-2026-1102-B3C9', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Provincial Osorno', 'Tribuna Chinquihue Techada', 'Puerta 1 - Acceso Tribuna', 'Sector A - Asiento 15', 'Gonzalo Soto Morales', '15.821.402-3', 'VALIDA', 14000, CURRENT_TIMESTAMP),
+('DPM-SOCIO-2026-0842', 'CARNET_SOCIO', 'Deportes Puerto Montt (Socio Al Día 2026)', 'Tribuna Chinquihue', 'Puerta 1 - Acceso Tribuna', 'Butaca Socio Libre', 'Matías Mena Socio', '18.492.301-8', 'VALIDA', 0, CURRENT_TIMESTAMP),
+('DPM-TKT-2026-USADO-77', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Galería Sur', 'Puerta 2', 'Asiento 12', 'Esteban Paredes', '13.491.200-1', 'INGRESADA', 7000, CURRENT_TIMESTAMP),
+('DPM-SOCIO-2026-MOROSO', 'CARNET_SOCIO', 'Deportes Puerto Montt (Socio 2026)', 'Galería Sur', 'Puerta 2', 'General', 'Juan Perez Moroso', '11.222.333-4', 'MOROSO', 0, CURRENT_TIMESTAMP);
