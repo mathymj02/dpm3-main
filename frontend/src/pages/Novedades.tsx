@@ -30,6 +30,19 @@ export const Novedades = () => {
 
   useEffect(() => {
     const fetchNovedades = async () => {
+      // 1. Revisar si el administrador tiene noticias guardadas o actualizadas
+      const savedNews = localStorage.getItem('dpm_novedades_data');
+      if (savedNews) {
+        try {
+          const parsed = JSON.parse(savedNews);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setNovedades(parsed);
+            setLoading(false);
+            return;
+          }
+        } catch {}
+      }
+
       try {
         const response = await api.get('/novedades');
         setNovedades(response.data);

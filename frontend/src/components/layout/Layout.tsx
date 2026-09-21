@@ -25,6 +25,7 @@
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import { HimnoPlayer } from '../ui/HimnoPlayer';
 
 export const Layout = () => {
   return (
@@ -50,6 +51,9 @@ export const Layout = () => {
           <Outlet />
         </main>
         
+        {/* Reproductor Flotante del Himno Oficial */}
+        <HimnoPlayer />
+
         <Footer />
       </div>
     </div>

@@ -6,15 +6,8 @@
  * 
  * ¿QUÉ HACE ESTE ARCHIVO?
  * Renderiza la vista completa (detalle) de una noticia o novedad específica.
- * 
- * DECISIONES DE DISEÑO / UX:
- * - Patrón de Página Dinámica: Al igual que con los jugadores, utiliza
- *   `/novedades/:id` para consultar la API y obtener los detalles del artículo.
- * - Tipografía y Lectura (Tailwind Typography / Prose): Se utiliza la clase
- *   genérica `prose prose-lg` (si el plugin typography estuviera activo) o 
- *   bien `whitespace-pre-wrap` para respetar los saltos de línea (\n)
- *   originales del texto plano enviado por la API, garantizando una lectura 
- *   agradable y estructurada tipo blog.
+ * Soporta tanto las noticias oficiales por defecto como las nuevas noticias
+ * publicadas dinámicamente por el Administrador en el Dashboard.
  * ============================================================================
  */
 import { useState, useEffect } from 'react';
@@ -23,6 +16,8 @@ import { Novedad } from '../types';
 import api from '../api/axiosConfig';
 import { Spinner } from '../components/ui/Spinner';
 import { motion } from 'framer-motion';
+import { FaArrowLeft, FaCalendarAlt, FaUser, FaShareAlt } from 'react-icons/fa';
+import { toastSuccess } from '../components/ui/Toast';
 
 export const NovedadDetalle = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,11 +27,28 @@ export const NovedadDetalle = () => {
 
   useEffect(() => {
     const fetchNovedad = async () => {
+      // 1. Prioridad: Buscar en las noticias guardadas por el administrador en localStorage
+      const savedNews = localStorage.getItem('dpm_novedades_data');
+      if (savedNews && id) {
+        try {
+          const parsed: Novedad[] = JSON.parse(savedNews);
+          const found = parsed.find(n => String(n.id) === String(id));
+          if (found) {
+            setNovedad(found);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error("Error al leer dpm_novedades_data:", e);
+        }
+      }
+
+      // 2. Intentar consultar al backend
       try {
         const response = await api.get(`/novedades/${id}`);
         setNovedad(response.data);
       } catch (error) {
-        // Fallback enriquecido según el ID solicitado
+        // 3. Fallback de noticias base por defecto
         const mockArticles: Record<string, Novedad> = {
           '1': {
             id: '1',
@@ -63,48 +75,104 @@ export const NovedadDetalle = () => {
             autorNombre: 'Comunicaciones DPM'
           }
         };
-        setNovedad(mockArticles[id || '1'] || mockArticles['1']);
+
+        if (id && mockArticles[id]) {
+          setNovedad(mockArticles[id]);
+        } else {
+          // Si no existe con ese ID, buscar por aproximación o mostrar null
+          setNovedad(null);
+        }
       } finally {
         setLoading(false);
       }
     };
+
     fetchNovedad();
   }, [id]);
 
   if (loading) return <Spinner />;
-  if (!novedad) return <div className="text-center py-20 text-xl text-white">Noticia no encontrada</div>;
+
+  if (!novedad) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center text-white">
+        <h2 className="text-3xl font-extrabold text-azul-dpm mb-4">Artículo no encontrado</h2>
+        <p className="text-gray-500 mb-6">La noticia que buscas no existe o fue retirada por el administrador.</p>
+        <button
+          onClick={() => navigate('/novedades')}
+          className="bg-verde-dpm hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-full transition"
+        >
+          Volver a Novedades
+        </button>
+      </div>
+    );
+  }
+
+  const handleShare = () => {
+    navigator.clipboard?.writeText(window.location.href);
+    toastSuccess('Enlace copiado al portapapeles.');
+  };
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <button 
-        onClick={() => navigate('/novedades')}
-        className="mb-6 bg-white/90 hover:bg-white text-verde-dpm px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow transition"
-      >
-        &larr; Volver a Novedades
-      </button>
+      {/* Botón de retroceso */}
+      <div className="flex items-center justify-between mb-6">
+        <button 
+          onClick={() => navigate('/novedades')}
+          className="inline-flex items-center gap-2 text-sky-400 hover:text-sky-300 font-bold text-sm bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700 transition"
+        >
+          <FaArrowLeft /> Volver al listado
+        </button>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-8 md:p-12">
-        <h1 className="text-3xl md:text-5xl font-extrabold text-azul-dpm mb-6 leading-tight">
-          {novedad.titulo}
-        </h1>
-        
-        <div className="flex items-center gap-4 text-gray-500 mb-8 border-b pb-4 text-sm font-medium">
-          <span>Por <span className="font-bold text-verde-dpm">{novedad.autorNombre}</span></span>
-          <span>&bull;</span>
-          <span>{novedad.fechaPublicacion}</span>
+        <button
+          onClick={handleShare}
+          className="inline-flex items-center gap-2 text-xs text-gray-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition"
+        >
+          <FaShareAlt /> Compartir noticia
+        </button>
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100"
+      >
+        {/* Foto de portada de la noticia */}
+        <div className="relative h-80 sm:h-96 w-full bg-slate-900 overflow-hidden">
+          <img 
+            src={novedad.imagenUrl} 
+            alt={novedad.titulo} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/puerto-montt-gol.jpeg';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+          
+          <div className="absolute bottom-6 left-6 right-6 text-white">
+            <div className="flex items-center gap-4 text-xs text-gray-300 mb-2">
+              <span className="flex items-center gap-1 bg-verde-dpm/90 px-2.5 py-0.5 rounded font-bold text-white">
+                <FaCalendarAlt size={11} /> {novedad.fechaPublicacion}
+              </span>
+              <span className="flex items-center gap-1 text-sky-300">
+                <FaUser size={11} /> {novedad.autorNombre}
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow-md">
+              {novedad.titulo}
+            </h1>
+          </div>
         </div>
 
-        <img 
-          src={novedad.imagenUrl} 
-          alt={novedad.titulo} 
-          className="w-full rounded-xl shadow-lg mb-10 object-cover max-h-[500px] bg-gray-100"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/robo-balon.jpg';
-          }}
-        />
+        {/* Cuerpo del Artículo */}
+        <div className="p-6 sm:p-10">
+          <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed space-y-4 whitespace-pre-wrap font-sans text-base sm:text-lg">
+            {novedad.contenido}
+          </div>
 
-        <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed text-lg">
-          {novedad.contenido}
+          <div className="mt-10 pt-6 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+            <span>Publicado oficialmente por {novedad.autorNombre}</span>
+            <span>Club Deportes Puerto Montt • Sitio Oficial</span>
+          </div>
         </div>
       </motion.div>
     </article>

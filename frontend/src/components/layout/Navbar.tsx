@@ -47,6 +47,7 @@ export const Navbar = () => {
 
   const navLinks = [
     { name: 'Inicio', path: '/' },
+    { name: 'Hazte Socio', path: '/socios', destacado: true },
     { name: 'Jugadores', path: '/jugadores' },
     { name: 'Tabla', path: '/posiciones' },
     { name: 'Novedades', path: '/novedades' },
@@ -89,7 +90,13 @@ export const Navbar = () => {
                 to={link.path}
                 className={({ isActive }) =>
                   `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive ? 'text-amarillo-dpm bg-white/10' : 'text-gray-100 hover:text-white hover:bg-white/5'
+                    link.destacado
+                      ? isActive
+                        ? 'bg-amarillo-dpm text-slate-950 font-bold'
+                        : 'bg-amarillo-dpm/20 border border-amarillo-dpm/50 text-amarillo-dpm hover:bg-amarillo-dpm hover:text-slate-950 font-bold'
+                      : isActive
+                      ? 'text-amarillo-dpm bg-white/10'
+                      : 'text-gray-100 hover:text-white hover:bg-white/5'
                   }`
                 }
               >
@@ -164,7 +171,13 @@ export const Navbar = () => {
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md text-base font-medium ${
-                    isActive ? 'text-amarillo-dpm bg-white/10' : 'text-gray-200 hover:text-white hover:bg-white/5'
+                    link.destacado
+                      ? isActive
+                        ? 'bg-amarillo-dpm text-slate-950 font-bold'
+                        : 'bg-amarillo-dpm/20 border border-amarillo-dpm/40 text-amarillo-dpm font-bold'
+                      : isActive
+                      ? 'text-amarillo-dpm bg-white/10'
+                      : 'text-gray-200 hover:text-white hover:bg-white/5'
                   }`
                 }
               >

@@ -63,6 +63,16 @@ export interface Jugador {
   edad: number;
   fotoUrl: string;
   descripcion: string;
+  // Estadísticas deportivas y ficha técnica para el hincha
+  dorsal?: number;
+  partidosJugados?: number;
+  goles?: number;
+  asistencias?: number;
+  atajadas?: number;
+  recuperaciones?: number;
+  precisionPases?: string;
+  clubOrigen?: string;
+  pieHabil?: 'Derecho' | 'Izquierdo' | 'Ambidiestro';
 }
 
 /** Artículo en venta en la tienda oficial */
