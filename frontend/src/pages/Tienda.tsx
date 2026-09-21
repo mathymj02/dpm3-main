@@ -98,18 +98,18 @@ export const Tienda = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-azul-dpm">Tienda Oficial</h1>
+        <h1 className="text-4xl sm:text-5xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">Tienda Oficial DPM</h1>
       </div>
 
-      <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
+      <div className="flex gap-3 mb-8 overflow-x-auto pb-2">
         {categorias.map(cat => (
           <button
             key={cat}
             onClick={() => setCategoria(cat)}
-            className={`px-4 py-2 rounded-full whitespace-nowrap font-medium transition ${
+            className={`px-5 py-2.5 rounded-full whitespace-nowrap font-bold text-xs sm:text-sm transition-all ${
               categoria === cat 
-                ? 'bg-verde-dpm text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-verde-dpm text-white shadow-lg border border-emerald-400/40' 
+                : 'bg-slate-900/80 backdrop-blur text-slate-200 border border-white/15 hover:bg-white/20 hover:text-white'
             }`}
           >
             {cat}

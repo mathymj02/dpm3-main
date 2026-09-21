@@ -266,21 +266,21 @@ export const Carrito = () => {
   if (!carrito || carrito.items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <FaShoppingCart className="mx-auto text-gray-300 mb-4" size={64} />
-        <h2 className="text-2xl font-bold text-gray-700 mb-2">Tu carrito está vacío</h2>
-        <p className="text-gray-500 mb-6 text-sm">
+        <FaShoppingCart className="mx-auto text-emerald-400 mb-4 drop-shadow" size={64} />
+        <h2 className="text-3xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-2">Tu carrito está vacío</h2>
+        <p className="text-slate-200 mb-6 text-sm sm:text-base font-medium drop-shadow">
           No tienes productos o entradas seleccionadas en este momento.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link 
             to="/tienda" 
-            className="inline-block bg-verde-dpm text-white font-bold py-2.5 px-6 rounded-full hover:bg-green-700 transition shadow"
+            className="inline-block bg-verde-dpm text-white font-bold py-2.5 px-6 rounded-full hover:bg-green-700 transition shadow-lg border border-emerald-400/40"
           >
             Ir a la Tienda Oficial
           </Link>
           <button
             onClick={agregarEntradaAlCarrito}
-            className="inline-flex items-center gap-2 bg-azul-dpm text-white font-bold py-2.5 px-6 rounded-full hover:bg-blue-800 transition shadow"
+            className="inline-flex items-center gap-2 bg-azul-dpm text-white font-bold py-2.5 px-6 rounded-full hover:bg-blue-800 transition shadow-lg border border-sky-400/40"
           >
             <FaTicketAlt /> Comprar Entrada vs {partidoElegido.rival} (${sectorElegido.precio.toLocaleString('es-CL')})
           </button>
@@ -331,7 +331,7 @@ export const Carrito = () => {
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold text-azul-dpm mb-8">Tu Carrito de Compras</h1>
+      <h1 className="text-3xl sm:text-5xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] mb-8">Tu Carrito de Compras</h1>
       
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Columna Izquierda: Lista de Productos y Selector de Entradas */}
