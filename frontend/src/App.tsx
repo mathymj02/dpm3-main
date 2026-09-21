@@ -43,6 +43,7 @@ import { Historia } from './pages/Historia';
 import { Posiciones } from './pages/Posiciones';
 import { Socios } from './pages/Socios';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { ValidadorTicket } from './pages/ValidadorTicket';
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
         <Route path="novedades/:id" element={<NovedadDetalle />} />
         <Route path="historia" element={<Historia />} />
         <Route path="posiciones" element={<Posiciones />} />
+        <Route path="validador" element={<ValidadorTicket />} />
         
         {/* Rutas Protegidas (Exige inicio de sesión obligatorio para transaccionar) */}
         <Route element={<PrivateRoute />}>

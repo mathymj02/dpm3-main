@@ -20,8 +20,10 @@
  * ============================================================================
  */
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { toastSuccess } from '../components/ui/Toast';
+import { FaQrcode, FaExternalLinkAlt } from 'react-icons/fa';
 
 export const AdminDashboard = () => {
   // Manejo de estado para las pestañas de navegación interna
@@ -40,16 +42,34 @@ export const AdminDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-azul-dpm mb-8">Panel de Administración</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <h1 className="text-3xl font-bold text-azul-dpm">Panel de Administración</h1>
+        <Link
+          to="/validador"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-azul-dpm to-sky-600 hover:from-blue-700 hover:to-sky-500 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition text-sm"
+        >
+          <FaQrcode /> Abrir Validador de Accesos Estadio <FaExternalLinkAlt size={12} />
+        </Link>
+      </div>
 
       {/* Tarjetas de Estadísticas Rápidas (KPIs) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {stats.map(stat => (
           <Card key={stat.name} className="p-6 bg-white border-l-4 border-verde-dpm">
             <h3 className="text-sm font-medium text-gray-500">{stat.name}</h3>
             <p className="mt-2 text-3xl font-bold text-gray-900">{stat.value}</p>
           </Card>
         ))}
+        <Link to="/validador" className="group">
+          <Card className="p-6 bg-slate-900 text-white border-l-4 border-emerald-400 hover:border-sky-400 transition cursor-pointer">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-slate-300">Torniquetes Chinquihue</h3>
+              <FaQrcode className="text-emerald-400 group-hover:scale-110 transition" />
+            </div>
+            <p className="mt-2 text-3xl font-bold text-emerald-300 font-mono">EN VIVO</p>
+            <span className="text-[11px] text-slate-400 mt-1 block">Control de acceso con lector QR →</span>
+          </Card>
+        </Link>
       </div>
 
       {/* Contenedor Principal (Tabs + Tabla) */}
