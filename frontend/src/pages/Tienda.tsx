@@ -40,6 +40,19 @@ export const Tienda = () => {
 
   useEffect(() => {
     const fetchProductos = async () => {
+      // 1. Revisar si el administrador tiene productos guardados en localStorage
+      const savedProds = localStorage.getItem('dpm_productos_data');
+      if (savedProds) {
+        try {
+          const parsed = JSON.parse(savedProds);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProductos(parsed);
+            setLoading(false);
+            return;
+          }
+        } catch {}
+      }
+
       try {
         const response = await api.get('/productos');
         setProductos(response.data);

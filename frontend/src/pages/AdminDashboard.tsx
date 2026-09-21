@@ -35,7 +35,11 @@ import {
   FaCheckCircle,
   FaExternalLinkAlt,
   FaCloudUploadAlt,
-  FaImage
+  FaImage,
+  FaEdit,
+  FaBoxOpen,
+  FaDollarSign,
+  FaChartLine
 } from 'react-icons/fa';
 import { Posicion, Novedad, Producto, Jugador } from '../types';
 
@@ -105,15 +109,132 @@ export const AdminDashboard: React.FC = () => {
   const [nuevoAutor] = useState('Comunicaciones DPM');
 
   // =========================================================================
-  // 3. ESTADO DE PRODUCTOS Y STOCK
+  // 3. ESTADO DE PRODUCTOS E INVENTARIO
   // =========================================================================
-  const [productos] = useState<Producto[]>([
+  const defaultProductos: Producto[] = [
     { id: '1', nombre: 'Polera Oficial DPM 2026', precio: 15000, imagenUrl: '/images/polera.jpg', stock: 100, categoria: 'Indumentaria' },
     { id: '2', nombre: 'Short Oficial DPM 2026', precio: 10000, imagenUrl: '/images/short.webp', stock: 80, categoria: 'Indumentaria' },
     { id: '3', nombre: 'Calcetas Oficiales', precio: 5000, imagenUrl: '/images/calcetas.webp', stock: 150, categoria: 'Indumentaria' },
     { id: '4', nombre: 'Gorro DPM Oficial', precio: 8000, imagenUrl: '/images/yoki.jpg', stock: 50, categoria: 'Accesorios' },
     { id: '5', nombre: 'Entrada Estadio Chinquihue (vs Temuco)', precio: 7000, imagenUrl: '/images/entrada.png', stock: 500, categoria: 'Tickets' },
+  ];
+
+  const [productos, setProductos] = useState<Producto[]>(() => {
+    const saved = localStorage.getItem('dpm_productos_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    return defaultProductos;
+  });
+
+  // Formulario de Producto (Crear / Editar)
+  const [showFormProducto, setShowFormProducto] = useState(false);
+  const [editandoProdId, setEditandoProdId] = useState<string | null>(null);
+  const [prodNombre, setProdNombre] = useState('');
+  const [prodCategoria, setProdCategoria] = useState('Indumentaria');
+  const [prodPrecio, setProdPrecio] = useState(15000);
+  const [prodStock, setProdStock] = useState(50);
+  const [prodImagen, setProdImagen] = useState('/images/polera.jpg');
+
+  // Estado de Ventas Simuladas / Facturación
+  const [totalFacturado] = useState(4820000);
+  const [ventasRecientes] = useState([
+    { id: 'V-101', fecha: 'Hoy, 14:20', cliente: 'Juan Morales', detalle: '1x Camiseta Oficial + 2x Entrada Chinquihue', total: 53990 },
+    { id: 'V-102', fecha: 'Hoy, 13:45', cliente: 'Camila Ríos', detalle: '1x Gorro DPM + 1x Short', total: 18000 },
+    { id: 'V-103', fecha: 'Hoy, 12:10', cliente: 'Roberto Paredes', detalle: '4x Entrada Galería Sur vs Temuco', total: 28000 },
   ]);
+
+  const guardarProductos = (nuevos: Producto[]) => {
+    setProductos(nuevos);
+    localStorage.setItem('dpm_productos_data', JSON.stringify(nuevos));
+  };
+
+  const handleProductImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toastInfo('La imagen no debe superar los 5MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setProdImagen(reader.result);
+          toastSuccess('Foto de producto cargada desde tu equipo.');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGuardarProducto = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prodNombre.trim()) {
+      toastInfo('Ingresa el nombre del producto.');
+      return;
+    }
+    if (prodPrecio <= 0) {
+      toastInfo('El precio debe ser mayor a 0.');
+      return;
+    }
+
+    if (editandoProdId) {
+      // Actualizar existente
+      const actualizados = productos.map(p => 
+        p.id === editandoProdId 
+          ? { ...p, nombre: prodNombre, categoria: prodCategoria, precio: prodPrecio, stock: prodStock, imagenUrl: prodImagen }
+          : p
+      );
+      guardarProductos(actualizados);
+      toastSuccess('Producto actualizado con éxito.');
+    } else {
+      // Crear nuevo
+      const nuevo: Producto = {
+        id: `prod-${Date.now()}`,
+        nombre: prodNombre,
+        categoria: prodCategoria,
+        precio: prodPrecio,
+        stock: prodStock,
+        imagenUrl: prodImagen || '/images/polera.jpg'
+      };
+      guardarProductos([nuevo, ...productos]);
+      toastSuccess('Nuevo producto agregado al catálogo oficial.');
+    }
+
+    setShowFormProducto(false);
+    setEditandoProdId(null);
+    setProdNombre('');
+    setProdPrecio(15000);
+    setProdStock(50);
+    setProdImagen('/images/polera.jpg');
+  };
+
+  const handleIniciarEdicionProducto = (p: Producto) => {
+    setEditandoProdId(p.id);
+    setProdNombre(p.nombre);
+    setProdCategoria(p.categoria);
+    setProdPrecio(p.precio);
+    setProdStock(p.stock);
+    setProdImagen(p.imagenUrl);
+    setShowFormProducto(true);
+  };
+
+  const handleEliminarProducto = (id: string) => {
+    const actualizados = productos.filter(p => p.id !== id);
+    guardarProductos(actualizados);
+    toastSuccess('Producto eliminado del inventario.');
+  };
+
+  const handleAjustarStock = (id: string, delta: number) => {
+    const actualizados = productos.map(p => 
+      p.id === id ? { ...p, stock: Math.max(0, p.stock + delta) } : p
+    );
+    guardarProductos(actualizados);
+    toastSuccess('Stock actualizado.');
+  };
 
   // =========================================================================
   // 4. ESTADO DE JUGADORES
@@ -672,54 +793,355 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {/* ================================================================= */}
-        {/* PESTAÑA 3: TIENDA & STOCK                                         */}
+        {/* PESTAÑA 3: TIENDA, INVENTARIO Y CONTROL DE VENTAS                  */}
         {/* ================================================================= */}
         {activeTab === 'productos' && (
-          <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Catálogo de Productos y Entradas</h3>
-                <p className="text-xs text-gray-500">Administra precios e inventario disponible para la venta online</p>
+          <div className="p-6 space-y-6">
+            
+            {/* Métricas de Inventario y Facturación */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl">
+                <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                  <FaBoxOpen className="text-verde-dpm" /> Total Productos
+                </span>
+                <p className="text-2xl font-black text-gray-900 mt-1">{productos.length}</p>
+                <span className="text-[11px] text-gray-400">En catálogo online</span>
+              </div>
+
+              <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl">
+                <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                  <FaStore className="text-azul-dpm" /> Unidades en Stock
+                </span>
+                <p className="text-2xl font-black text-azul-dpm mt-1 font-mono">
+                  {productos.reduce((acc, p) => acc + p.stock, 0)}
+                </p>
+                <span className="text-[11px] text-gray-400">Total físico en bodega</span>
+              </div>
+
+              <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl">
+                <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                  <FaDollarSign className="text-emerald-600" /> Valor Inventario
+                </span>
+                <p className="text-xl font-black text-emerald-700 mt-1">
+                  ${productos.reduce((acc, p) => acc + (p.precio * p.stock), 0).toLocaleString('es-CL')}
+                </p>
+                <span className="text-[11px] text-gray-400">Mercadería valorizada</span>
+              </div>
+
+              <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl">
+                <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                  <FaChartLine className="text-amber-500" /> Facturación Mes
+                </span>
+                <p className="text-xl font-black text-amber-600 mt-1 font-mono">
+                  ${totalFacturado.toLocaleString('es-CL')}
+                </p>
+                <span className="text-[11px] text-gray-400">Entradas + Merchandising</span>
               </div>
             </div>
 
-            <div className="border border-gray-200 rounded-xl overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-                  <tr>
-                    <th className="py-3 px-4 text-left">Producto</th>
-                    <th className="py-3 px-3 text-left">Categoría</th>
-                    <th className="py-3 px-3 text-center">Precio CLP</th>
-                    <th className="py-3 px-3 text-center">Stock</th>
-                    <th className="py-3 px-4 text-right">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {productos.map((prod) => (
-                    <tr key={prod.id}>
-                      <td className="py-3 px-4 flex items-center gap-3">
-                        <img src={prod.imagenUrl} alt={prod.nombre} className="w-10 h-10 object-contain rounded bg-gray-50 border p-1" />
-                        <span className="font-bold text-gray-900">{prod.nombre}</span>
-                      </td>
-                      <td className="py-3 px-3 text-xs text-gray-500">{prod.categoria}</td>
-                      <td className="py-3 px-3 text-center font-bold text-azul-dpm">
-                        ${prod.precio.toLocaleString('es-CL')}
-                      </td>
-                      <td className="py-3 px-3 text-center font-mono">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                          prod.stock > 20 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {prod.stock} un.
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-emerald-600 font-bold text-xs">ACTIVO</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Cabecera y Botón Nuevo Producto */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Gestión Dinámica de Inventario</h3>
+                <p className="text-xs text-gray-500">Crea nuevos artículos, actualiza precios, sube fotos y ajusta stock en tiempo real</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (showFormProducto && editandoProdId) {
+                    setEditandoProdId(null);
+                    setProdNombre('');
+                    setProdPrecio(15000);
+                    setProdStock(50);
+                    setProdImagen('/images/polera.jpg');
+                  } else {
+                    setShowFormProducto(!showFormProducto);
+                  }
+                }}
+                className="bg-verde-dpm hover:bg-green-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center gap-2 transition shadow"
+              >
+                <FaPlus /> {showFormProducto ? 'Cerrar Formulario' : 'Nuevo Producto / Entrada'}
+              </button>
             </div>
+
+            {/* Formulario de Crear / Editar Producto */}
+            {showFormProducto && (
+              <form onSubmit={handleGuardarProducto} className="bg-slate-50 border-2 border-emerald-500/40 rounded-2xl p-6 space-y-4 animate-fadeIn">
+                <div className="flex items-center justify-between border-b pb-3">
+                  <h4 className="text-sm font-black text-azul-dpm flex items-center gap-2">
+                    <FaEdit className="text-verde-dpm" />
+                    {editandoProdId ? `Editar Producto (#${editandoProdId})` : 'Crear Nuevo Producto para la Tienda'}
+                  </h4>
+                  {editandoProdId && (
+                    <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">
+                      Modo Edición
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Nombre */}
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Nombre del Producto o Entrada</label>
+                    <input
+                      type="text"
+                      value={prodNombre}
+                      onChange={(e) => setProdNombre(e.target.value)}
+                      placeholder="Ej: Camiseta Alternativa 2026 o Entrada Tribuna vs Rangers"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-verde-dpm"
+                    />
+                  </div>
+
+                  {/* Categoría */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Categoría</label>
+                    <select
+                      value={prodCategoria}
+                      onChange={(e) => setProdCategoria(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+                    >
+                      <option value="Indumentaria">Indumentaria</option>
+                      <option value="Accesorios">Accesorios</option>
+                      <option value="Tickets">Tickets / Entradas</option>
+                      <option value="Coleccionables">Coleccionables</option>
+                    </select>
+                  </div>
+
+                  {/* Precio */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Precio Unitario ($ CLP)</label>
+                    <input
+                      type="number"
+                      min="100"
+                      step="500"
+                      value={prodPrecio}
+                      onChange={(e) => setProdPrecio(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-verde-dpm font-bold text-azul-dpm"
+                    />
+                  </div>
+
+                  {/* Stock Inicial */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Stock Disponible (Unidades)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={prodStock}
+                      onChange={(e) => setProdStock(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-verde-dpm font-mono"
+                    />
+                  </div>
+
+                  {/* Foto con Subida desde PC */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1 flex items-center gap-1">
+                      <FaImage className="text-verde-dpm" /> Foto del Producto
+                    </label>
+                    <div className="flex gap-2">
+                      <label className="flex-1 cursor-pointer bg-white border border-dashed border-emerald-500 rounded-lg p-2 flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">
+                        <FaCloudUploadAlt className="text-base text-verde-dpm" />
+                        <span>Subir desde PC</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProductImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Previsualizador y selector de galería */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-3 rounded-xl border border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={prodImagen} 
+                      alt="Vista previa producto" 
+                      className="w-14 h-14 object-contain rounded-lg border p-1 bg-gray-50"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/polera.jpg';
+                      }}
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold text-gray-800 block">Vista previa de imagen</span>
+                      <span className="text-[11px] text-gray-500 line-clamp-1">{prodImagen}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-gray-500">O galería:</span>
+                    <select
+                      value={prodImagen.startsWith('data:') ? 'custom' : prodImagen}
+                      onChange={(e) => {
+                        if (e.target.value !== 'custom') setProdImagen(e.target.value);
+                      }}
+                      className="border border-gray-300 rounded-lg px-2 py-1 text-xs bg-white"
+                    >
+                      <option value="/images/polera.jpg">Polera Oficial DPM</option>
+                      <option value="/images/short.webp">Short Oficial DPM</option>
+                      <option value="/images/calcetas.webp">Calcetas DPM</option>
+                      <option value="/images/yoki.jpg">Gorro DPM Oficial</option>
+                      <option value="/images/entrada.png">Entrada Estadio Chinquihue</option>
+                      {prodImagen.startsWith('data:') && (
+                        <option value="custom">★ Foto subida desde tu PC</option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Botones de acción del formulario */}
+                <div className="flex justify-end gap-2 pt-2 border-t">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowFormProducto(false);
+                      setEditandoProdId(null);
+                    }}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold py-2 px-4 rounded-lg transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-verde-dpm hover:bg-green-700 text-white text-xs font-bold py-2 px-6 rounded-lg transition flex items-center gap-1.5 shadow"
+                  >
+                    <FaSave /> {editandoProdId ? 'Guardar Cambios' : 'Publicar Producto en Tienda'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Tabla Dinámica de Inventario */}
+            <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-gray-50 px-4 py-3 border-b flex items-center justify-between text-xs font-bold text-gray-700 uppercase">
+                <span>Catálogo de Productos & Entradas en Bodega:</span>
+                <span className="text-emerald-700 font-semibold lowercase">✓ sincronizado con la tienda online</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-100 text-gray-600 text-xs uppercase">
+                    <tr>
+                      <th className="py-3 px-4 text-left">Producto</th>
+                      <th className="py-3 px-3 text-left">Categoría</th>
+                      <th className="py-3 px-3 text-center">Precio CLP</th>
+                      <th className="py-3 px-3 text-center">Control de Stock</th>
+                      <th className="py-3 px-4 text-center">Estado</th>
+                      <th className="py-3 px-4 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {productos.map((prod) => (
+                      <tr key={prod.id} className="hover:bg-slate-50 transition">
+                        <td className="py-3 px-4 flex items-center gap-3">
+                          <img 
+                            src={prod.imagenUrl} 
+                            alt={prod.nombre} 
+                            className="w-12 h-12 object-contain rounded-lg bg-gray-50 border p-1" 
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/images/polera.jpg';
+                            }}
+                          />
+                          <div>
+                            <span className="font-bold text-gray-900 block">{prod.nombre}</span>
+                            <span className="text-[10px] text-gray-400 font-mono">ID: {prod.id}</span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-3 text-xs text-gray-600">
+                          <span className="bg-gray-100 px-2 py-0.5 rounded-full font-medium">
+                            {prod.categoria}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-3 text-center font-bold text-azul-dpm text-base">
+                          ${prod.precio.toLocaleString('es-CL')}
+                        </td>
+
+                        {/* Control Rápido de Stock (+/-) */}
+                        <td className="py-3 px-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => handleAjustarStock(prod.id, -10)}
+                              className="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs"
+                              title="Restar 10 unidades"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-bold text-sm w-12 text-center">
+                              {prod.stock}
+                            </span>
+                            <button
+                              onClick={() => handleAjustarStock(prod.id, 10)}
+                              className="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs"
+                              title="Sumar 10 unidades"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-4 text-center">
+                          {prod.stock > 15 ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                              <FaCheckCircle size={10} /> En Stock
+                            </span>
+                          ) : prod.stock > 0 ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">
+                              ⚠️ Stock Bajo
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full">
+                              Agotado
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => handleIniciarEdicionProducto(prod)}
+                            className="text-azul-dpm hover:text-blue-900 font-bold text-xs mr-3 inline-flex items-center gap-1"
+                          >
+                            <FaEdit /> Editar
+                          </button>
+                          <button
+                            onClick={() => handleEliminarProducto(prod.id)}
+                            className="text-rose-600 hover:text-rose-800 font-bold text-xs inline-flex items-center gap-1"
+                          >
+                            <FaTrash /> Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Registro de Ventas Recientes */}
+            <div className="bg-slate-50 border border-gray-200 rounded-xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                  <FaChartLine className="text-verde-dpm" /> Registro de Ventas Recientes (Checkout)
+                </h4>
+                <span className="text-[11px] text-gray-400">Actualizado automáticamente por Carrito</span>
+              </div>
+
+              <div className="divide-y divide-gray-200">
+                {ventasRecientes.map(v => (
+                  <div key={v.id} className="py-2.5 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-gray-900">{v.cliente}</span>
+                      <span className="text-gray-500 block text-[11px]">{v.detalle} • {v.fecha}</span>
+                    </div>
+                    <span className="font-black text-verde-dpm font-mono text-sm">
+                      +${v.total.toLocaleString('es-CL')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         )}
 

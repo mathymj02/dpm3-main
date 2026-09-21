@@ -17,14 +17,18 @@ import {
 
 interface TicketRecord {
   codigo: string;
+  tipo?: 'TICKET' | 'SOCIO';
   partido: string;
   titular: string;
   rut: string;
   sector: string;
   puerta: string;
-  estado: 'DISPONIBLE' | 'UTILIZADO' | 'INVALIDO';
+  estado: 'DISPONIBLE' | 'UTILIZADO' | 'INVALIDO' | 'MOROSO';
   horaIngreso?: string;
   puertaIngreso?: string;
+  planSocio?: string;
+  cuotaEstado?: 'AL DÍA' | 'PENDIENTE';
+  numeroSocio?: string;
 }
 
 interface LogIngreso {
@@ -46,7 +50,7 @@ export const ValidadorTicket: React.FC = () => {
     tipo: 'IDLE' | 'EXITO' | 'DENEGADO' | 'ERROR';
     mensaje: string;
     detalle?: TicketRecord;
-  }>({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada...' });
+  }>({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada o carnet de socio...' });
 
   const [aforoActual, setAforoActual] = useState(1420);
   const [totalValidadas, setTotalValidadas] = useState(1420);
@@ -72,10 +76,11 @@ export const ValidadorTicket: React.FC = () => {
     }
   ]);
 
-  // Base de datos local simulada de entradas
+  // Base de datos local simulada de entradas y credenciales de socio
   const [ticketsDB, setTicketsDB] = useState<Record<string, TicketRecord>>({
     'DPM-TKT-DEMO-VALID': {
       codigo: 'DPM-TKT-DEMO-VALID',
+      tipo: 'TICKET',
       partido: 'DPM vs Deportes Temuco',
       titular: 'Juan Ignacio Pérez',
       rut: '18.943.201-4',
@@ -85,6 +90,7 @@ export const ValidadorTicket: React.FC = () => {
     },
     'DPM-TKT-DEMO-USADA': {
       codigo: 'DPM-TKT-DEMO-USADA',
+      tipo: 'TICKET',
       partido: 'DPM vs Deportes Temuco',
       titular: 'Rodrigo Gómez Muñoz',
       rut: '15.342.119-K',
@@ -93,6 +99,32 @@ export const ValidadorTicket: React.FC = () => {
       estado: 'UTILIZADO',
       horaIngreso: '17:12:05',
       puertaIngreso: 'Puerta 1'
+    },
+    'DPM-SOCIO-2026-0842': {
+      codigo: 'DPM-SOCIO-2026-0842',
+      tipo: 'SOCIO',
+      partido: 'Membresía Anual 2026 • Torneo Oficial',
+      titular: 'Matías Hincha Albiverde',
+      rut: '18.492.301-8',
+      sector: 'Tribuna Chinquihue (Sector Socios)',
+      puerta: 'Puerta 1 - Exclusiva Socios',
+      planSocio: 'Socio Tribuna Chinquihue',
+      numeroSocio: 'DPM-2026-0842',
+      cuotaEstado: 'AL DÍA',
+      estado: 'DISPONIBLE'
+    },
+    'DPM-SOCIO-MOROSO': {
+      codigo: 'DPM-SOCIO-MOROSO',
+      tipo: 'SOCIO',
+      partido: 'Membresía Anual 2026',
+      titular: 'Gonzalo Silva Vera',
+      rut: '14.281.902-3',
+      sector: 'Galería Sur',
+      puerta: 'Puerta 2',
+      planSocio: 'Socio Galería Popular',
+      numeroSocio: 'DPM-2026-0115',
+      cuotaEstado: 'PENDIENTE',
+      estado: 'MOROSO'
     }
   });
 
@@ -186,19 +218,40 @@ export const ValidadorTicket: React.FC = () => {
           codigo: cleanCode,
           titular: 'Desconocido',
           resultado: 'DENEGADO',
-          motivo: 'Entrada no existe en el sistema oficial',
+          motivo: 'Código no existe en el sistema oficial',
           hora: ahora,
           sector: 'N/A'
         },
         ...prev.slice(0, 19)
       ]);
+    } else if (ticket.estado === 'MOROSO') {
+      // Socio con cuota pendiente
+      emitirSonido(false);
+      setTotalRechazos(prev => prev + 1);
+      setResultadoActual({
+        tipo: 'ERROR',
+        mensaje: 'SOCIO CON CUOTA PENDIENTE (ACCESO BLOQUEADO)',
+        detalle: ticket
+      });
+      setHistorial(prev => [
+        {
+          id: `log-${Date.now()}`,
+          codigo: ticket.codigo,
+          titular: ticket.titular,
+          resultado: 'DENEGADO',
+          motivo: 'Cuota de socio impaga. Regularizar en sede o web',
+          hora: ahora,
+          sector: ticket.sector
+        },
+        ...prev.slice(0, 19)
+      ]);
     } else if (ticket.estado === 'UTILIZADO') {
-      // Entrada ya fue usada previamente
+      // Entrada o membresía ya fue usada para este partido
       emitirSonido(false);
       setTotalRechazos(prev => prev + 1);
       setResultadoActual({
         tipo: 'DENEGADO',
-        mensaje: 'ENTRADA YA UTILIZADA',
+        mensaje: ticket.tipo === 'SOCIO' ? 'SOCIO YA INGRESÓ HOY AL ESTADIO' : 'ENTRADA YA UTILIZADA',
         detalle: ticket
       });
       setHistorial(prev => [
@@ -214,7 +267,7 @@ export const ValidadorTicket: React.FC = () => {
         ...prev.slice(0, 19)
       ]);
     } else {
-      // Entrada válida y disponible -> APROBAR Y MARCAR COMO USADA
+      // Entrada o Membresía válida y disponible -> APROBAR Y MARCAR COMO USADA
       emitirSonido(true);
       const ticketActualizado: TicketRecord = {
         ...ticket,
@@ -232,7 +285,9 @@ export const ValidadorTicket: React.FC = () => {
       setAforoActual(prev => prev + 1);
       setResultadoActual({
         tipo: 'EXITO',
-        mensaje: 'ACCESO PERMITIDO - BIENVENIDO A CHINQUIHUE',
+        mensaje: ticket.tipo === 'SOCIO' 
+          ? 'ACCESO LIBERADO • BIENVENIDO SOCIO' 
+          : 'ACCESO PERMITIDO - BIENVENIDO A CHINQUIHUE',
         detalle: ticketActualizado
       });
 
@@ -242,7 +297,7 @@ export const ValidadorTicket: React.FC = () => {
           codigo: ticket.codigo,
           titular: ticket.titular,
           resultado: 'PERMITIDO',
-          motivo: 'Acceso concedido',
+          motivo: ticket.tipo === 'SOCIO' ? 'Acceso liberado por membresía' : 'Acceso concedido',
           hora: ahora,
           sector: ticket.sector
         },
@@ -418,7 +473,7 @@ export const ValidadorTicket: React.FC = () => {
                 <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2.5">
                   🧪 Pruebas Rápidas de Simulación (1 Click):
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => procesarCodigo('DPM-TKT-DEMO-VALID')}
@@ -428,10 +483,24 @@ export const ValidadorTicket: React.FC = () => {
                   </button>
                   <button
                     type="button"
+                    onClick={() => procesarCodigo('DPM-SOCIO-2026-0842')}
+                    className="bg-gradient-to-r from-emerald-900 to-teal-900 hover:from-emerald-800 hover:to-teal-800 border border-teal-500/60 text-amber-300 text-xs py-2 px-3 rounded-lg font-bold transition text-left"
+                  >
+                    🎖️ Carnet Socio (Al Día)
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => procesarCodigo('DPM-TKT-DEMO-USADA')}
                     className="bg-amber-950/80 hover:bg-amber-900 border border-amber-700/60 text-amber-200 text-xs py-2 px-3 rounded-lg font-medium transition text-left"
                   >
                     🟡 Entrada Ya Usada
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => procesarCodigo('DPM-SOCIO-MOROSO')}
+                    className="bg-purple-950/80 hover:bg-purple-900 border border-purple-700/60 text-purple-200 text-xs py-2 px-3 rounded-lg font-medium transition text-left"
+                  >
+                    ⚠️ Socio Moroso
                   </button>
                   <button
                     type="button"
@@ -482,16 +551,28 @@ export const ValidadorTicket: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3 text-xs bg-slate-900/80 p-4 rounded-xl border border-emerald-700/50">
                     <div>
-                      <span className="text-gray-400 block text-[11px]">Hincha / Titular:</span>
+                      <span className="text-gray-400 block text-[11px]">
+                        {resultadoActual.detalle.tipo === 'SOCIO' ? 'Socio / Titular:' : 'Hincha / Titular:'}
+                      </span>
                       <span className="font-bold text-white text-sm">{resultadoActual.detalle.titular}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block text-[11px]">RUT:</span>
-                      <span className="font-mono font-bold text-white">{resultadoActual.detalle.rut}</span>
+                      <span className="text-gray-400 block text-[11px]">
+                        {resultadoActual.detalle.tipo === 'SOCIO' ? 'N° Socio / RUT:' : 'RUT:'}
+                      </span>
+                      <span className="font-mono font-bold text-white">
+                        {resultadoActual.detalle.numeroSocio ? `${resultadoActual.detalle.numeroSocio} • ` : ''}
+                        {resultadoActual.detalle.rut}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block text-[11px]">Sector Autorizado:</span>
-                      <span className="font-bold text-emerald-300 uppercase">{resultadoActual.detalle.sector}</span>
+                      <span className="text-gray-400 block text-[11px]">
+                        {resultadoActual.detalle.tipo === 'SOCIO' ? 'Categoría & Sector:' : 'Sector Autorizado:'}
+                      </span>
+                      <span className="font-bold text-emerald-300 uppercase">
+                        {resultadoActual.detalle.planSocio ? `${resultadoActual.detalle.planSocio} • ` : ''}
+                        {resultadoActual.detalle.sector}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-400 block text-[11px]">Hora de Acceso:</span>
@@ -499,9 +580,15 @@ export const ValidadorTicket: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="text-center text-xs text-emerald-300 font-semibold bg-emerald-900/40 py-2 rounded-lg">
-                    ✓ Boleto marcado como UTILIZADO. Prohibido segundo reingreso.
-                  </div>
+                  {resultadoActual.detalle.tipo === 'SOCIO' ? (
+                    <div className="text-center text-xs text-amber-300 font-bold bg-amber-950/60 border border-amber-600/40 py-2.5 rounded-lg flex items-center justify-center gap-2">
+                      <span>🎖️ CUOTA AL DÍA (2026) • Acceso Liberado por Membresía Oficial</span>
+                    </div>
+                  ) : (
+                    <div className="text-center text-xs text-emerald-300 font-semibold bg-emerald-900/40 py-2 rounded-lg">
+                      ✓ Boleto marcado como UTILIZADO. Prohibido segundo reingreso.
+                    </div>
+                  )}
                 </div>
               )}
 

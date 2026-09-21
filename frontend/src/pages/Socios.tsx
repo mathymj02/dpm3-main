@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCheckCircle, FaShieldAlt, FaQrcode, FaStar, FaAward, FaUsers, FaChevronRight, FaDownload } from 'react-icons/fa';
+import { FaCheckCircle, FaShieldAlt, FaQrcode, FaStar, FaAward, FaUsers, FaChevronRight, FaDownload, FaLock } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toastSuccess, toastInfo } from '../components/ui/Toast';
 
 // Convenios reales extraídos de dpmchile.cl
@@ -132,8 +132,15 @@ const planes = [
 export const Socios: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [planSeleccionado, setPlanSeleccionado] = useState<string>('tribuna');
-  const [socioActivo, setSocioActivo] = useState<boolean>(false);
+  const [planSeleccionado, setPlanSeleccionado] = useState<string>(() => {
+    return localStorage.getItem('dpm_socio_plan') || 'tribuna';
+  });
+  const [socioActivo, setSocioActivo] = useState<boolean>(() => {
+    return localStorage.getItem('dpm_socio_activo') === 'true' || user?.rol === 'SOCIO';
+  });
+  const [codigoSocio, setCodigoSocio] = useState<string>(() => {
+    return localStorage.getItem('dpm_socio_codigo') || (user?.rol === 'SOCIO' ? 'DPM-SOCIO-2026-0842' : '');
+  });
 
   const handleSuscribir = (planId: string) => {
     if (!isAuthenticated) {
@@ -142,14 +149,29 @@ export const Socios: React.FC = () => {
       return;
     }
 
+    const nuevoCodigo = `DPM-SOCIO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     setPlanSeleccionado(planId);
     setSocioActivo(true);
-    toastSuccess('¡Felicidades! Te has suscrito exitosamente. Tu Carnet Digital está activo.');
+    setCodigoSocio(nuevoCodigo);
+
+    localStorage.setItem('dpm_socio_activo', 'true');
+    localStorage.setItem('dpm_socio_plan', planId);
+    localStorage.setItem('dpm_socio_codigo', nuevoCodigo);
+
+    toastSuccess('¡Felicidades! Te has suscrito exitosamente. Tu código QR de Socio ha sido desbloqueado.');
     // Scroll al carnet digital
     const element = document.getElementById('carnet-digital');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handlePausarMembresiaPrueba = () => {
+    setSocioActivo(false);
+    setCodigoSocio('');
+    localStorage.removeItem('dpm_socio_activo');
+    localStorage.removeItem('dpm_socio_codigo');
+    toastInfo('Membresía desactivada para probar vista sin suscripción.');
   };
 
   const planActualInfo = planes.find(p => p.id === planSeleccionado) || planes[1];
@@ -295,8 +317,12 @@ export const Socios: React.FC = () => {
                   <p className="text-[10px] text-amarillo-dpm font-bold uppercase tracking-widest">Carnet de Socio Oficial</p>
                 </div>
               </div>
-              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold uppercase">
-                {socioActivo || isAuthenticated ? 'Activo 2026' : 'Vista Previa'}
+              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border ${
+                socioActivo 
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' 
+                  : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+              }`}>
+                {socioActivo ? 'Socio Activo 2026' : 'Membresía No Activa'}
               </span>
             </div>
 
@@ -305,12 +331,14 @@ export const Socios: React.FC = () => {
               <div className="col-span-2 space-y-1">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">Nombre del Hincha</p>
                 <p className="text-sm sm:text-base font-black truncate">
-                  {isAuthenticated && user ? user.nombre : 'Matías Hincha Albiverde'}
+                  {isAuthenticated && user ? user.nombre : 'Hincha Albiverde'}
                 </p>
                 <div className="flex gap-4 pt-1">
                   <div>
                     <p className="text-[9px] text-gray-400 uppercase">N° Socio</p>
-                    <p className="text-xs font-mono font-bold text-amarillo-dpm">DPM-2026-0842</p>
+                    <p className="text-xs font-mono font-bold text-amarillo-dpm">
+                      {socioActivo ? (codigoSocio || 'DPM-SOCIO-2026-0842') : '--- BLOQUEADO ---'}
+                    </p>
                   </div>
                   <div>
                     <p className="text-[9px] text-gray-400 uppercase">Categoría</p>
@@ -319,27 +347,80 @@ export const Socios: React.FC = () => {
                 </div>
               </div>
 
-              {/* Código QR Simulado */}
-              <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/95 text-slate-950 shadow-inner">
-                <FaQrcode className="w-14 h-14 text-slate-900" />
-                <span className="text-[8px] font-mono font-black mt-0.5">VALIDAR</span>
+              {/* Código QR Dinámico o Bloqueado con Candado */}
+              <div className="flex flex-col items-center justify-center p-1.5 rounded-xl bg-white text-slate-950 shadow-md min-h-[84px]">
+                {socioActivo ? (
+                  <>
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${codigoSocio || 'DPM-SOCIO-2026-0842'}&bgcolor=ffffff&color=0b2545&margin=1`}
+                      alt="QR Carnet Socio"
+                      className="w-16 h-16 object-contain rounded"
+                    />
+                    <span className="text-[7px] font-mono font-black mt-0.5 tracking-wider text-azul-dpm">SOCIO 2026</span>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center p-1">
+                    <FaLock className="text-rose-600 text-xl mb-1 animate-pulse" />
+                    <span className="text-[8px] font-bold text-rose-700 uppercase leading-tight">QR Bloqueado</span>
+                    <span className="text-[6px] text-gray-500">Sin Membresía</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Pie del Carnet */}
             <div className="flex items-center justify-between border-t border-white/15 pt-2 relative z-10 text-[9px] text-gray-300">
               <span>Estadio Chinquihue · Puerto Montt</span>
-              <span className="font-mono">Vence: 31/12/2026</span>
+              <span className={`font-mono font-bold ${socioActivo ? 'text-emerald-400' : 'text-rose-400'}`}>
+                Cuota: {socioActivo ? 'AL DÍA (2026)' : 'PENDIENTE DE PAGO'}
+              </span>
             </div>
           </div>
 
-          <div className="flex justify-center gap-3 mt-4">
-            <button 
-              onClick={() => toastSuccess('Carnet Digital guardado en caché para acceso sin conexión.')}
-              className="inline-flex items-center gap-1.5 text-xs text-amarillo-dpm hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg border border-white/10"
-            >
-              <FaDownload className="w-3.5 h-3.5" /> Descargar Credencial
-            </button>
+          {/* Acciones y Avisos según estado de suscripción */}
+          <div className="mt-4 space-y-3">
+            {socioActivo ? (
+              <div className="flex flex-wrap justify-center gap-3">
+                <button 
+                  onClick={() => toastSuccess('Carnet Digital guardado en caché para acceso sin conexión.')}
+                  className="inline-flex items-center gap-1.5 text-xs text-amarillo-dpm hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg border border-white/10"
+                >
+                  <FaDownload className="w-3.5 h-3.5" /> Descargar Credencial
+                </button>
+                <Link
+                  to={`/validador?codigo=${codigoSocio || 'DPM-SOCIO-2026-0842'}`}
+                  className="inline-flex items-center gap-1.5 text-xs bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold px-4 py-2 rounded-lg shadow transition"
+                >
+                  <FaQrcode className="w-3.5 h-3.5" /> Probar Carnet en Validador de Torniquetes
+                </Link>
+                <button 
+                  onClick={handlePausarMembresiaPrueba}
+                  className="text-[11px] text-gray-400 hover:text-rose-400 underline block w-full text-center mt-1"
+                >
+                  (Modo Prueba: Desactivar Membresía para ver estado bloqueado)
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-500/30 text-center space-y-2">
+                <p className="text-xs text-rose-200">
+                  ⚠️ <strong>Acceso no habilitado:</strong> Tu credencial no posee código QR de ingreso porque aún no te has registrado como socio activo del club.
+                </p>
+                <div className="flex justify-center gap-3">
+                  <a
+                    href="#planes"
+                    className="inline-flex items-center gap-1.5 text-xs bg-amarillo-dpm hover:bg-yellow-400 text-slate-950 font-bold px-4 py-2 rounded-lg shadow transition"
+                  >
+                    Ver Planes y Suscribirme para Desbloquear QR
+                  </a>
+                  <button
+                    onClick={() => handleSuscribir('tribuna')}
+                    className="inline-flex items-center gap-1.5 text-xs bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-2 rounded-lg border border-white/20 transition"
+                  >
+                    ⚡ Activar Prueba Inmediata
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

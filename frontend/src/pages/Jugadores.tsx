@@ -5,16 +5,18 @@
  * ============================================================================
  * 
  * ¿QUÉ HACE ESTE ARCHIVO?
- * Lista a todos los jugadores del plantel con opciones de filtrado.
+ * Presenta a los planteles oficiales de Deportes Puerto Montt:
+ * 1. Primer Equipo Masculino (Campeonato Ascenso 2026)
+ * 2. Primer Equipo Femenino - "Las Hijas del Temporal" (Ascenso Femenino 2026)
  * 
  * DECISIONES DE DISEÑO / UX:
- * - Dynamic Routing (Ruteo Dinámico): Cada tarjeta tiene un evento `onClick`
- *   que redirige a `/jugadores/:id`, permitiendo ver el detalle individual.
- * - Stagger Animation (Animación en cascada): Se utiliza `staggerChildren` de 
- *   Framer Motion en el contenedor. Esto hace que cada jugador aparezca uno 
- *   por uno con un ligero retraso, creando un efecto fluido de carga.
- * - Filtros rápidos (Posición): Una barra de botones (Tabs) para filtrar en
- *   memoria por "Portero", "Defensa", etc., brindando feedback inmediato.
+ * - Selector de Plantel (Masculino / Femenino): Permite al hincha alternar entre
+ *   ambas ramas oficiales del club con un solo clic.
+ * - Tarjetas 3D Flip Card: Al posicionar el mouse o hacer clic, la tarjeta
+ *   rota 180° revelando estadísticas clave (goles, asistencias, atajadas,
+ *   recuperaciones, club formador y datos biográficos oficiales de dpmchile.cl).
+ * - Filtros rápidos por posición: Portero, Defensa, Volante, Delantero.
+ * - Enrutamiento dinámico: Cada tarjeta redirige a `/jugadores/:id`.
  * ============================================================================
  */
 import { useState, useEffect } from 'react';
@@ -23,9 +25,208 @@ import { motion } from 'framer-motion';
 import { Jugador } from '../types';
 import api from '../api/axiosConfig';
 import { Spinner } from '../components/ui/Spinner';
+import { FaFutbol } from 'react-icons/fa';
+
+// Datos oficiales del Plantel Masculino 2026
+const plantelMasculinoData: Jugador[] = [
+  { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-5.png', descripcion: '🧱 Muro en el arco: imbatible bajo presión con reflejos felinos y gran juego aéreo.' },
+  { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chile', fotoUrl: '/images/jugador-rodriguez.jpg', descripcion: '🧠 Líder táctico: excelente distribución en el mediocampo y cobertura impecable.' },
+  { id: '3', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-1.png', descripcion: '⚡ Velocidad y compromiso defensivo por la banda diestra.' },
+  { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugador-riveros.jpg', descripcion: '🦁 Líder silencioso, precisión en pases y gran dominio de balón.' },
+  { id: '5', nombre: 'Kevin Flores', posicion: 'Defensa', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/jugador-flores.jpg', descripcion: '🧱 Anticipación férrea y gran poderío físico en la zaga.' },
+  { id: '6', nombre: 'Yakob Yousef', posicion: 'Delantero', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/jugador-yousef.jpg', descripcion: '⚡ Desborde constante, presión alta y definición letal.' },
+  { id: '7', nombre: 'Sebastián Torres', posicion: 'Defensa', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-3.png', descripcion: '🚀 Velocidad, centros quirúrgicos y marca implacable.' },
+  { id: '8', nombre: 'Daniel Bahamonde', posicion: 'Defensa', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-6.png', descripcion: '🏃‍♂️ Motor del carril izquierdo con proyección y repliegue continuo.' },
+  { id: '9', nombre: 'Giovanni Bustos', posicion: 'Volante', edad: 25, nacionalidad: 'Chile', fotoUrl: '/images/jugador-4.png', descripcion: '🎩 Visión de juego privilegiada, control de tiempos y presión.' },
+  { id: '10', nombre: 'Sebastián González', posicion: 'Volante', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-2.png', descripcion: '📊 Inteligencia táctica y efectividad en la recuperación.' },
+  { id: '11', nombre: 'Kevin Mansilla', posicion: 'Delantero', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-8.png', descripcion: '🧭 Olfato goleador de área y ubicación perfecta.' },
+  { id: '12', nombre: 'Fabián Rodríguez', posicion: 'Delantero', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-7.png', descripcion: '❤️ Entrega total, letal al acecho del gol en el área rival.' }
+];
+
+// Datos oficiales del Plantel Femenino 2026 (Las Hijas del Temporal - extraídas de dpmchile.cl)
+const plantelFemeninoData: Jugador[] = [
+  { 
+    id: 'fem-1', 
+    nombre: 'Alexandra Vilugrón', 
+    posicion: 'Portero', 
+    edad: 22, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Alejandra-Vilugron.webp', 
+    descripcion: '🧤 "Vilu": Maipucina formada en Labranza. Seguridad total y reflejos elásticos bajo los tres palos.',
+    dorsal: 1,
+    partidosJugados: 14,
+    atajadas: 38,
+    clubOrigen: 'Academia Deportes Labranza / Unión Araucanía',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-2', 
+    nombre: 'Clara Elgueta', 
+    posicion: 'Defensa', 
+    edad: 28, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Clara-Elgueta.webp', 
+    descripcion: '👑 "Clarita": Histórica defensora central y capitana albiverde formada en Chinquihue. Liderazgo y garra pura.',
+    dorsal: 4,
+    partidosJugados: 16,
+    recuperaciones: 45,
+    goles: 2,
+    clubOrigen: 'Deportes Puerto Montt / Curicó Unido',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-3', 
+    nombre: 'Karen Catrián', 
+    posicion: 'Defensa', 
+    edad: 18, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Antonella-Pascal.webp', 
+    descripcion: '🇨🇱 Defensora central con paso por la Selección Chilena Femenina Sub-20. Anticipación y timing perfecto.',
+    dorsal: 3,
+    partidosJugados: 15,
+    recuperaciones: 39,
+    clubOrigen: 'Selección Chilena Sub-20 / Cholchol',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-4', 
+    nombre: 'Consuelo Martínez', 
+    posicion: 'Defensa', 
+    edad: 24, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Consuelo-Martinez.webp', 
+    descripcion: '⚡ "Superconsu": Lateral incansable con recorrido completo, quite limpio y entrega absoluta.',
+    dorsal: 2,
+    partidosJugados: 14,
+    recuperaciones: 34,
+    clubOrigen: 'Recreativo Puerto Varas / Coquimbo Unido',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-5', 
+    nombre: 'Thaissa Argel', 
+    posicion: 'Volante', 
+    edad: 19, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Thaissa-Argel.webp', 
+    descripcion: '🎩 Puertomontina de gran pie, cambio de frente quirúrgico y despliegue continuo en la medular.',
+    dorsal: 8,
+    partidosJugados: 16,
+    asistencias: 6,
+    goles: 2,
+    clubOrigen: 'Escuela Universidad de Chile / Recreativo PV',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-6', 
+    nombre: 'Sofía Henríquez', 
+    posicion: 'Volante', 
+    edad: 18, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Sofia-Henriquez.webp', 
+    descripcion: '⭐ "Sofi": Campeona de los Juegos Binacionales. Dinámica, visión periférica y pegada de media distancia.',
+    dorsal: 10,
+    partidosJugados: 15,
+    asistencias: 5,
+    goles: 4,
+    clubOrigen: 'Unión Araucanía',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-7', 
+    nombre: 'Fiorenzza Venturelli', 
+    posicion: 'Volante', 
+    edad: 19, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Fiorenzza-Venturelli.webp', 
+    descripcion: '🪄 "Fio": Gran manejo de balón, regate corto y creadora nata del frente de ataque.',
+    dorsal: 6,
+    partidosJugados: 13,
+    asistencias: 4,
+    goles: 3,
+    clubOrigen: 'Unión Araucanía / Deportes Temuco',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-8', 
+    nombre: 'Krishna Soto', 
+    posicion: 'Volante', 
+    edad: 21, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Krishna-Soto-.webp', 
+    descripcion: '🛡️ "Flaca": Equilibrio y combate en el medio terreno. Orden táctico e intercepciones clave.',
+    dorsal: 5,
+    partidosJugados: 14,
+    recuperaciones: 31,
+    clubOrigen: 'Recreativo Puerto Varas / Cobresal',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-9', 
+    nombre: 'Tamara Mansilla', 
+    posicion: 'Delantero', 
+    edad: 21, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Tamara-Mansilla.webp', 
+    descripcion: '🏹 "Peka": Goleadora puertomontina proveniente de Santiago Morning. Festejo de flecha y definición clínica.',
+    dorsal: 9,
+    partidosJugados: 16,
+    goles: 11,
+    asistencias: 4,
+    clubOrigen: 'Recreativo Puerto Varas / Santiago Morning',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-10', 
+    nombre: 'Verenna Trautmann', 
+    posicion: 'Delantero', 
+    edad: 20, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Verenna-Trautmann.webp', 
+    descripcion: '⚡ "Vere": Delantera potente formada en Osorno con paso por Universidad Católica. Potencia y remate.',
+    dorsal: 11,
+    partidosJugados: 15,
+    goles: 8,
+    asistencias: 3,
+    clubOrigen: 'Colo Colo Osorno / Universidad Católica',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-11', 
+    nombre: 'Thiare Vargas', 
+    posicion: 'Delantero', 
+    edad: 19, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Thiare-Vargas.webp', 
+    descripcion: '🔥 "Thiare del Flow": Canterana puertomontina con velocidad punzante por las bandas y llegada al área.',
+    dorsal: 7,
+    partidosJugados: 13,
+    goles: 5,
+    asistencias: 3,
+    clubOrigen: 'Severo Cofré / Cantera DPM',
+    pieHabil: 'Derecho'
+  },
+  { 
+    id: 'fem-12', 
+    nombre: 'Rocío Bañares', 
+    posicion: 'Delantero', 
+    edad: 20, 
+    nacionalidad: 'Chile', 
+    fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/Rocio-Banares-.webp', 
+    descripcion: '🎯 "Chío": Extrema desequilibrante nacida en Puerto Montt. Gran juego asociativo y desborde.',
+    dorsal: 16,
+    partidosJugados: 12,
+    goles: 4,
+    asistencias: 2,
+    clubOrigen: 'Cantera DPM Chinquihue',
+    pieHabil: 'Derecho'
+  }
+];
 
 export const Jugadores = () => {
-  const [jugadores, setJugadores] = useState<Jugador[]>([]);
+  const [categoriaRama, setCategoriaRama] = useState<'MASCULINO' | 'FEMENINO'>('MASCULINO');
+  const [jugadoresMasculinos, setJugadoresMasculinos] = useState<Jugador[]>(plantelMasculinoData);
+  const jugadoresFemeninos = plantelFemeninoData;
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState('Todos');
   const navigate = useNavigate();
@@ -34,25 +235,13 @@ export const Jugadores = () => {
     const fetchJugadores = async () => {
       try {
         const response = await api.get('/jugadores');
-        setJugadores(response.data);
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setJugadoresMasculinos(response.data);
+        }
       } catch (error) {
-        // Datos oficiales de DPM con imágenes locales en caso de desconexión
-        setJugadores([
-          { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-5.png', descripcion: '🧱 Muro en el arco: imbatible bajo presión con reflejos felinos y gran juego aéreo.' },
-          { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chile', fotoUrl: '/images/jugador-rodriguez.jpg', descripcion: '🧠 Líder táctico: excelente distribución en el mediocampo y cobertura impecable.' },
-          { id: '3', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-1.png', descripcion: '⚡ Velocidad y compromiso defensivo por la banda diestra.' },
-          { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugador-riveros.jpg', descripcion: '🦁 Líder silencioso, precisión en pases y gran dominio de balón.' },
-          { id: '5', nombre: 'Kevin Flores', posicion: 'Defensa', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/jugador-flores.jpg', descripcion: '🧱 Anticipación férrea y gran poderío físico en la zaga.' },
-          { id: '6', nombre: 'Yakob Yousef', posicion: 'Delantero', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/jugador-yousef.jpg', descripcion: '⚡ Desborde constante, presión alta y definición letal.' },
-          { id: '7', nombre: 'Sebastián Torres', posicion: 'Defensa', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-3.png', descripcion: '🚀 Velocidad, centros quirúrgicos y marca implacable.' },
-          { id: '8', nombre: 'Daniel Bahamonde', posicion: 'Defensa', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-6.png', descripcion: '🏃‍♂️ Motor del carril izquierdo con proyección y repliegue continuo.' },
-          { id: '9', nombre: 'Giovanni Bustos', posicion: 'Volante', edad: 25, nacionalidad: 'Chile', fotoUrl: '/images/jugador-4.png', descripcion: '🎩 Visión de juego privilegiada, control de tiempos y presión.' },
-          { id: '10', nombre: 'Sebastián González', posicion: 'Volante', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-2.png', descripcion: '📊 Inteligencia táctica y efectividad en la recuperación.' },
-          { id: '11', nombre: 'Kevin Mansilla', posicion: 'Delantero', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-8.png', descripcion: '🧭 Olfato goleador de área y ubicación perfecta.' },
-          { id: '12', nombre: 'Fabián Rodríguez', posicion: 'Delantero', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-7.png', descripcion: '❤️ Entrega total, letal al acecho del gol en el área rival.' }
-        ]);
+        // Usa los datos locales de alta fidelidad
       } finally {
-        setLoading(false); // Retira el spinner de carga al finalizar
+        setLoading(false);
       }
     };
     fetchJugadores();
@@ -60,10 +249,12 @@ export const Jugadores = () => {
 
   const posiciones = ['Todos', 'Portero', 'Defensa', 'Volante', 'Delantero'];
   
-  // Lógica de filtrado en memoria (no requiere llamadas extra a la API)
+  const plantelActual = categoriaRama === 'MASCULINO' ? jugadoresMasculinos : jugadoresFemeninos;
+
+  // Lógica de filtrado en memoria
   const filtrados = filtro === 'Todos' 
-    ? jugadores 
-    : jugadores.filter(j => j.posicion.toLowerCase() === filtro.toLowerCase());
+    ? plantelActual 
+    : plantelActual.filter(j => j.posicion.toLowerCase() === filtro.toLowerCase());
 
   if (loading) return <Spinner />;
 
@@ -72,7 +263,7 @@ export const Jugadores = () => {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 } // Efecto cascada
+      transition: { staggerChildren: 0.08 }
     }
   };
 
@@ -82,19 +273,87 @@ export const Jugadores = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-bold text-azul-dpm mb-8 text-center">Nuestro Plantel</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
       
-      {/* Botones de Filtro */}
-      <div className="flex flex-wrap justify-center gap-2 mb-10">
+      {/* Encabezado Principal */}
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-azul-dpm/10 border border-azul-dpm/20 text-azul-dpm text-xs font-bold uppercase tracking-wider">
+          <FaFutbol /> Planteles Oficiales Temporada 2026
+        </span>
+        <h1 className="text-4xl sm:text-5xl font-black text-azul-dpm">
+          Nuestros Jugadores & Jugadoras
+        </h1>
+        <p className="text-gray-600 text-sm sm:text-base">
+          Conoce a quienes defienden la camiseta del Velero en el Estadio Chinquihue con estadísticas deportivas en tiempo real.
+        </p>
+      </div>
+
+      {/* Selector de Rama: Primer Equipo Masculino vs Femenino */}
+      <div className="flex justify-center">
+        <div className="bg-slate-100 p-1.5 rounded-2xl border border-gray-200 shadow-inner flex max-w-md w-full">
+          <button
+            onClick={() => {
+              setCategoriaRama('MASCULINO');
+              setFiltro('Todos');
+            }}
+            className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
+              categoriaRama === 'MASCULINO'
+                ? 'bg-azul-dpm text-white shadow-md'
+                : 'text-gray-600 hover:text-azul-dpm hover:bg-white/50'
+            }`}
+          >
+            <span>⚽</span> Primer Equipo Masculino
+          </button>
+          <button
+            onClick={() => {
+              setCategoriaRama('FEMENINO');
+              setFiltro('Todos');
+            }}
+            className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
+              categoriaRama === 'FEMENINO'
+                ? 'bg-emerald-700 text-white shadow-md'
+                : 'text-gray-600 hover:text-emerald-700 hover:bg-white/50'
+            }`}
+          >
+            <span>🌸</span> Plantel Femenino
+          </button>
+        </div>
+      </div>
+
+      {/* Banner Informativo del Plantel Seleccionado */}
+      <div className={`p-4 rounded-2xl border text-sm flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm ${
+        categoriaRama === 'FEMENINO'
+          ? 'bg-gradient-to-r from-emerald-950 via-slate-900 to-teal-950 border-emerald-500/30 text-emerald-100'
+          : 'bg-gradient-to-r from-azul-dpm via-slate-900 to-azul-dpm/90 border-sky-500/30 text-sky-100'
+      }`}>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">{categoriaRama === 'FEMENINO' ? '⛵' : '🏆'}</span>
+          <div>
+            <h3 className="font-bold text-white text-base">
+              {categoriaRama === 'FEMENINO' ? 'Las Hijas del Temporal • Ascenso Femenino' : 'Primer Equipo Profesional • Campeonato Ascenso'}
+            </h3>
+            <p className="text-xs opacity-80">
+              {categoriaRama === 'FEMENINO' 
+                ? 'Dirigidas por el DT Cristian Aldunate. Proyecto de retorno competitivo a la división de honor.'
+                : 'Cuerpo técnico liderado con identidad del sur en el Estadio Bicentenario Chinquihue.'}
+            </p>
+          </div>
+        </div>
+        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-white/10 border border-white/20 whitespace-nowrap">
+          {plantelActual.length} Futbolistas en Nómina
+        </span>
+      </div>
+
+      {/* Botones de Filtro por Posición */}
+      <div className="flex flex-wrap justify-center gap-2">
         {posiciones.map(pos => (
           <button
             key={pos}
             onClick={() => setFiltro(pos)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
               filtro === pos 
-                ? 'bg-verde-dpm text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? categoriaRama === 'FEMENINO' ? 'bg-emerald-600 text-white shadow-md' : 'bg-verde-dpm text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             {pos}
@@ -102,8 +361,9 @@ export const Jugadores = () => {
         ))}
       </div>
 
-      {/* Grilla animada */}
+      {/* Grilla animada con tarjetas 3D Flip */}
       <motion.div 
+        key={categoriaRama + filtro}
         variants={container}
         initial="hidden"
         animate="show"
@@ -112,7 +372,7 @@ export const Jugadores = () => {
         {filtrados.map(jugador => {
           const stats = {
             dorsal: jugador.dorsal || (jugador.posicion === 'Portero' ? 1 : jugador.posicion === 'Defensa' ? 4 : jugador.posicion === 'Volante' ? 8 : 9),
-            partidosJugados: jugador.partidosJugados || 18,
+            partidosJugados: jugador.partidosJugados || 15,
             goles: jugador.goles ?? (jugador.posicion === 'Delantero' ? 7 : jugador.posicion === 'Volante' ? 3 : 0),
             asistencias: jugador.asistencias ?? (jugador.posicion === 'Volante' ? 5 : jugador.posicion === 'Delantero' ? 2 : 1),
             atajadas: jugador.atajadas ?? (jugador.posicion === 'Portero' ? 42 : 0),
@@ -129,10 +389,10 @@ export const Jugadores = () => {
               className="group [perspective:1000px] h-96 cursor-pointer"
               onClick={() => navigate(`/jugadores/${jugador.id}`)}
             >
-              {/* Tarjeta con efecto 3D Flip (Rotación al pasar el cursor o presionar) */}
+              {/* Tarjeta con efecto 3D Flip */}
               <div className="relative h-full w-full rounded-2xl transition-all duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] shadow-xl group-hover:shadow-2xl group-hover:shadow-amarillo-dpm/20">
                 
-                {/* CARA FRONTAL: Foto, Dorsal, Nombre y Posición con halo iluminado */}
+                {/* CARA FRONTAL: Foto, Dorsal, Nombre y Posición */}
                 <div className="absolute inset-0 h-full w-full rounded-2xl overflow-hidden [backface-visibility:hidden] border border-white/10 group-hover:border-amarillo-dpm/60 bg-gradient-to-b from-azul-dpm via-slate-900 to-slate-950 flex flex-col justify-between">
                   {/* Dorsal y badge de posición */}
                   <div className="p-3 flex justify-between items-center relative z-10">
@@ -220,7 +480,7 @@ export const Jugadores = () => {
                     {/* Datos biográficos de origen */}
                     <div className="text-[11px] text-gray-300 space-y-1 bg-black/30 p-2.5 rounded-xl border border-white/5">
                       <p><strong className="text-gray-400">Pie Hábil:</strong> {stats.pieHabil}</p>
-                      <p><strong className="text-gray-400">Formación:</strong> {stats.clubOrigen}</p>
+                      <p className="truncate"><strong className="text-gray-400">Origen:</strong> {stats.clubOrigen}</p>
                     </div>
                   </div>
 
@@ -238,10 +498,10 @@ export const Jugadores = () => {
         })}
       </motion.div>
       
-      {/* Empty State: si un filtro no arroja resultados */}
+      {/* Empty State si el filtro no tiene jugadores */}
       {filtrados.length === 0 && (
-        <div className="text-center text-gray-500 py-10">
-          No hay jugadores para esta posición.
+        <div className="text-center text-gray-500 py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+          No hay jugadores registrados en esta posición para el plantel seleccionado.
         </div>
       )}
     </div>

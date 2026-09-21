@@ -28,7 +28,7 @@
 export interface User {
   nombre: string;
   email: string;
-  rol: 'ADMIN' | 'USER'; // Restringido solo a dos posibles valores.
+  rol: 'ADMIN' | 'USER' | 'SOCIO' | 'GUARDIA'; // Roles del club: Administrador, Hincha, Socio al día, Guardia de acceso
 }
 
 /** 
@@ -38,7 +38,7 @@ export interface AuthResponse {
   token: string; // Token JWT para autorización
   nombre: string;
   email: string;
-  rol: 'ADMIN' | 'USER';
+  rol: 'ADMIN' | 'USER' | 'SOCIO' | 'GUARDIA';
 }
 
 /** Payload enviado a la API para iniciar sesión */
