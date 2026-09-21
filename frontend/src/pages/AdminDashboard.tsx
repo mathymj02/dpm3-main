@@ -33,7 +33,9 @@ import {
   FaSave, 
   FaUndo,
   FaCheckCircle,
-  FaExternalLinkAlt
+  FaExternalLinkAlt,
+  FaCloudUploadAlt,
+  FaImage
 } from 'react-icons/fa';
 import { Posicion, Novedad, Producto, Jugador } from '../types';
 
@@ -194,6 +196,25 @@ export const AdminDashboard: React.FC = () => {
     toastSuccess('Tabla de posiciones restablecida a los valores oficiales.');
   };
 
+  // Función para subir una foto desde la computadora (Base64)
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toastInfo('La imagen no debe superar los 5MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setNuevaImagen(reader.result);
+          toastSuccess('¡Foto cargada exitosamente desde tu equipo!');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Agregar nueva noticia
   const handleCrearNoticia = (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,6 +238,7 @@ export const AdminDashboard: React.FC = () => {
     
     setNuevoTitulo('');
     setNuevoContenido('');
+    setNuevaImagen('/images/puerto-montt-gol.jpeg');
     setShowFormNoticia(false);
     toastSuccess('¡Noticia publicada oficialmente en el sitio web!');
   };
@@ -523,20 +545,73 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">URL de la Foto</label>
-                    <select
-                      value={nuevaImagen}
-                      onChange={(e) => setNuevaImagen(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
-                    >
-                      <option value="/images/puerto-montt-gol.jpeg">Celebración de Gol DPM</option>
-                      <option value="/images/equipo-dpm.png">Plantel Oficial DPM</option>
-                      <option value="/images/EstadioChinquihue.png">Estadio Chinquihue</option>
-                      <option value="/images/novedades1.jpg">Sala Acondicionamiento</option>
-                      <option value="/images/novedad3.jpeg">Victoria en Chinquihue</option>
-                    </select>
+                    <label className="block text-xs font-bold text-gray-700 mb-1 flex items-center gap-1">
+                      <FaImage className="text-verde-dpm" /> Foto de la Noticia
+                    </label>
+
+                    {/* Selector de origen de imagen */}
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <label className="flex-1 cursor-pointer bg-white border-2 border-dashed border-emerald-400 hover:border-emerald-600 rounded-lg p-2.5 flex items-center justify-center gap-2 text-xs font-bold text-emerald-800 transition">
+                          <FaCloudUploadAlt className="text-lg text-verde-dpm" />
+                          <span>Subir desde mi PC</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-gray-400">O galería oficial:</span>
+                        <select
+                          value={nuevaImagen.startsWith('data:') ? 'custom' : nuevaImagen}
+                          onChange={(e) => {
+                            if (e.target.value !== 'custom') {
+                              setNuevaImagen(e.target.value);
+                            }
+                          }}
+                          className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-xs bg-white text-gray-700"
+                        >
+                          <option value="/images/puerto-montt-gol.jpeg">Celebración Gol Chinquihue</option>
+                          <option value="/images/equipo-dpm.png">Plantel Oficial DPM</option>
+                          <option value="/images/EstadioChinquihue.png">Estadio Chinquihue Aéreo</option>
+                          <option value="/images/novedades1.jpg">Sala Musculación Chinquihue</option>
+                          <option value="/images/novedad3.jpeg">Victoria Albiverde</option>
+                          {nuevaImagen.startsWith('data:') && (
+                            <option value="custom">★ Imagen personalizada desde PC</option>
+                          )}
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* Vista Previa de la Foto Seleccionada */}
+                {nuevaImagen && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-4">
+                    <img 
+                      src={nuevaImagen} 
+                      alt="Vista previa" 
+                      className="w-20 h-16 object-cover rounded-md border shadow-sm flex-shrink-0"
+                    />
+                    <div className="flex-1 text-xs">
+                      <span className="font-bold text-gray-800 block">Vista previa de la imagen cargada</span>
+                      <span className="text-[11px] text-gray-500 line-clamp-1">
+                        {nuevaImagen.startsWith('data:') ? 'Foto personalizada cargada desde tu equipo' : nuevaImagen}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNuevaImagen('/images/puerto-montt-gol.jpeg')}
+                      className="text-xs text-gray-500 hover:text-rose-600 underline"
+                    >
+                      Restablecer
+                    </button>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Cuerpo / Contenido de la Noticia</label>
