@@ -35,4 +35,12 @@ public class EntradaController {
     public ResponseEntity<AforoResponse> obtenerAforo() {
         return ResponseEntity.ok(entradaService.obtenerAforo());
     }
+
+    /**
+     * Reinicia la asistencia a 0 para simulaciones o demostraciones de examen
+     */
+    @PostMapping("/reiniciar")
+    public ResponseEntity<AforoResponse> reiniciarAforo() {
+        return ResponseEntity.ok(entradaService.reiniciarAforo());
+    }
 }

@@ -13,7 +13,8 @@ import {
   FaKeyboard,
   FaVolumeUp,
   FaVolumeMute,
-  FaArrowLeft
+  FaArrowLeft,
+  FaSyncAlt
 } from 'react-icons/fa';
 
 interface TicketRecord {
@@ -53,29 +54,10 @@ export const ValidadorTicket: React.FC = () => {
     detalle?: TicketRecord;
   }>({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada o carnet de socio...' });
 
-  const [aforoActual, setAforoActual] = useState(1420);
-  const [totalValidadas, setTotalValidadas] = useState(1420);
-  const [totalRechazos, setTotalRechazos] = useState(14);
-  const [historial, setHistorial] = useState<LogIngreso[]>([
-    {
-      id: 'log-1',
-      codigo: 'DPM-TKT-8491-01',
-      titular: 'Carlos Alvarado',
-      resultado: 'PERMITIDO',
-      motivo: 'Entrada verificada con éxito',
-      hora: '17:35:12',
-      sector: 'Galería Sur'
-    },
-    {
-      id: 'log-2',
-      codigo: 'DPM-TKT-8491-02',
-      titular: 'Matías Soto',
-      resultado: 'DENEGADO',
-      motivo: 'Entrada ya utilizada a las 17:15',
-      hora: '17:38:40',
-      sector: 'Tribuna Chinquihue'
-    }
-  ]);
+  const [aforoActual, setAforoActual] = useState(0);
+  const [totalValidadas, setTotalValidadas] = useState(0);
+  const [totalRechazos, setTotalRechazos] = useState(0);
+  const [historial, setHistorial] = useState<LogIngreso[]>([]);
 
   // Base de datos local simulada de entradas y credenciales de socio
   const [ticketsDB, setTicketsDB] = useState<Record<string, TicketRecord>>({
@@ -202,8 +184,9 @@ export const ValidadorTicket: React.FC = () => {
     const cargarAforo = async () => {
       try {
         const res = await api.get('/entradas/aforo');
-        if (res.data && res.data.ingresados) {
+        if (res.data && res.data.ingresados !== undefined) {
           setAforoActual(res.data.ingresados);
+          setTotalValidadas(res.data.ingresados);
         }
       } catch (err) {
         // En modo local mantiene el aforo base
@@ -211,6 +194,17 @@ export const ValidadorTicket: React.FC = () => {
     };
     cargarAforo();
   }, []);
+
+  const handleReiniciarValidador = async () => {
+    try {
+      await api.post('/entradas/reiniciar');
+    } catch (e) {}
+    setAforoActual(0);
+    setTotalValidadas(0);
+    setTotalRechazos(0);
+    setHistorial([]);
+    setResultadoActual({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada o carnet de socio (Operación en 0)...' });
+  };
 
   // Validar código contra la API de Spring Boot (con fallback local)
   const procesarCodigo = async (codigo: string) => {
@@ -466,6 +460,15 @@ export const ValidadorTicket: React.FC = () => {
               title={sonidoHabilitado ? 'Sonido Activado' : 'Sonido Silenciado'}
             >
               {sonidoHabilitado ? <FaVolumeUp /> : <FaVolumeMute />}
+            </button>
+
+            {/* Botón Reiniciar Operación / Poner a 0 */}
+            <button
+              onClick={handleReiniciarValidador}
+              className="flex items-center gap-1.5 text-xs bg-rose-900/60 hover:bg-rose-800 text-rose-200 border border-rose-700/50 px-3 py-1.5 rounded-lg transition"
+              title="Reiniciar conteo a 0 para demostración en vivo"
+            >
+              <FaSyncAlt /> Iniciar en 0
             </button>
           </div>
         </div>

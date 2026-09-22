@@ -24,7 +24,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Jugador } from '../types';
 import api from '../api/axiosConfig';
-import { Spinner } from '../components/ui/Spinner';
 import { FaFutbol } from 'react-icons/fa';
 
 // Datos oficiales del Plantel Masculino 2026 (con dorsales y estadísticas de rendimiento)
@@ -404,14 +403,33 @@ const plantelFemeninoData: Jugador[] = [
 
 export const Jugadores = () => {
   const [categoriaRama, setCategoriaRama] = useState<'MASCULINO' | 'FEMENINO'>('MASCULINO');
-  const [jugadoresMasculinos, setJugadoresMasculinos] = useState<Jugador[]>(plantelMasculinoData);
+  const [jugadoresMasculinos, setJugadoresMasculinos] = useState<Jugador[]>(() => {
+    const saved = localStorage.getItem('dpm_jugadores_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    return plantelMasculinoData;
+  });
   const jugadoresFemeninos = plantelFemeninoData;
-  const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState('Todos');
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchJugadores = async () => {
+      const saved = localStorage.getItem('dpm_jugadores_data');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setJugadoresMasculinos(parsed);
+            return;
+          }
+        } catch {}
+      }
+
       try {
         const response = await api.get('/jugadores');
         if (Array.isArray(response.data) && response.data.length > 0) {
@@ -419,11 +437,23 @@ export const Jugadores = () => {
         }
       } catch (error) {
         // Usa los datos locales de alta fidelidad
-      } finally {
-        setLoading(false);
       }
     };
     fetchJugadores();
+
+    const handleStorage = () => {
+      const saved = localStorage.getItem('dpm_jugadores_data');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setJugadoresMasculinos(parsed);
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const posiciones = ['Todos', 'Portero', 'Defensa', 'Volante', 'Delantero'];
@@ -434,8 +464,6 @@ export const Jugadores = () => {
   const filtrados = filtro === 'Todos' 
     ? plantelActual 
     : plantelActual.filter(j => j.posicion.toLowerCase() === filtro.toLowerCase());
-
-  if (loading) return <Spinner />;
 
   // Configuraciones de Animación Framer Motion
   const container = {

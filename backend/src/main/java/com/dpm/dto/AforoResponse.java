@@ -14,5 +14,6 @@ public class AforoResponse {
     private long capacidadTotal;
     private double porcentajeOcupacion;
     private long entradasEmitidas;
+    private long recaudacionTotal;
     private String estadoCapacidad; // NORMAL, MODERADO, LLENO
 }
