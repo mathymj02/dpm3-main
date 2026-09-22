@@ -96,6 +96,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/novedades/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posiciones/**").permitAll()
+                        // Endpoints del sistema de torniquetes y aforo de estadio
+                        .requestMatchers("/api/entradas/**").permitAll()
                         // Consola de base de datos H2, pública para depuración
                         .requestMatchers("/h2-console/**").permitAll()
                         // Cualquier otra petición (POST, PUT, DELETE) requiere estar autenticado

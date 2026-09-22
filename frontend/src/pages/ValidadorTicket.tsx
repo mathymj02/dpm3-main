@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import api from '../api/axiosConfig';
 import { 
   FaQrcode, 
   FaCheckCircle, 
@@ -12,7 +13,8 @@ import {
   FaKeyboard,
   FaVolumeUp,
   FaVolumeMute,
-  FaArrowLeft
+  FaArrowLeft,
+  FaSyncAlt
 } from 'react-icons/fa';
 
 interface TicketRecord {
@@ -52,29 +54,10 @@ export const ValidadorTicket: React.FC = () => {
     detalle?: TicketRecord;
   }>({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada o carnet de socio...' });
 
-  const [aforoActual, setAforoActual] = useState(1420);
-  const [totalValidadas, setTotalValidadas] = useState(1420);
-  const [totalRechazos, setTotalRechazos] = useState(14);
-  const [historial, setHistorial] = useState<LogIngreso[]>([
-    {
-      id: 'log-1',
-      codigo: 'DPM-TKT-8491-01',
-      titular: 'Carlos Alvarado',
-      resultado: 'PERMITIDO',
-      motivo: 'Entrada verificada con éxito',
-      hora: '17:35:12',
-      sector: 'Galería Sur'
-    },
-    {
-      id: 'log-2',
-      codigo: 'DPM-TKT-8491-02',
-      titular: 'Matías Soto',
-      resultado: 'DENEGADO',
-      motivo: 'Entrada ya utilizada a las 17:15',
-      hora: '17:38:40',
-      sector: 'Tribuna Chinquihue'
-    }
-  ]);
+  const [aforoActual, setAforoActual] = useState(0);
+  const [totalValidadas, setTotalValidadas] = useState(0);
+  const [totalRechazos, setTotalRechazos] = useState(0);
+  const [historial, setHistorial] = useState<LogIngreso[]>([]);
 
   // Base de datos local simulada de entradas y credenciales de socio
   const [ticketsDB, setTicketsDB] = useState<Record<string, TicketRecord>>({
@@ -196,113 +179,228 @@ export const ValidadorTicket: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Validar código
-  const procesarCodigo = (codigo: string) => {
+  // Cargar métricas oficiales de aforo en vivo desde el Backend Spring Boot
+  useEffect(() => {
+    const cargarAforo = async () => {
+      try {
+        const res = await api.get('/entradas/aforo');
+        if (res.data && res.data.ingresados !== undefined) {
+          setAforoActual(res.data.ingresados);
+          setTotalValidadas(res.data.ingresados);
+        }
+      } catch (err) {
+        // En modo local mantiene el aforo base
+      }
+    };
+    cargarAforo();
+  }, []);
+
+  const handleReiniciarValidador = async () => {
+    try {
+      await api.post('/entradas/reiniciar');
+    } catch (e) {}
+    setAforoActual(0);
+    setTotalValidadas(0);
+    setTotalRechazos(0);
+    setHistorial([]);
+    setResultadoActual({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada o carnet de socio (Operación en 0)...' });
+  };
+
+  // Validar código contra la API de Spring Boot (con fallback local)
+  const procesarCodigo = async (codigo: string) => {
     const cleanCode = codigo.trim().toUpperCase();
     if (!cleanCode) return;
 
     const ahora = new Date().toLocaleTimeString('es-CL');
-    const ticket = ticketsDB[cleanCode];
 
-    if (!ticket) {
-      // Código falso o inexistente
-      emitirSonido(false);
-      setTotalRechazos(prev => prev + 1);
-      setResultadoActual({
-        tipo: 'ERROR',
-        mensaje: 'CÓDIGO NO REGISTRADO O FRAUDULENTO',
+    // 1. Intento de Validación en el Backend Spring Boot
+    try {
+      const res = await api.post('/entradas/validar', { 
+        codigo: cleanCode, 
+        puerta: puertaActual 
       });
-      setHistorial(prev => [
-        {
-          id: `log-${Date.now()}`,
+      const data = res.data;
+
+      if (data.valido) {
+        emitirSonido(true);
+        setTotalValidadas(prev => prev + 1);
+        if (data.aforoActual) setAforoActual(data.aforoActual);
+
+        const ticketExito: TicketRecord = {
           codigo: cleanCode,
-          titular: 'Desconocido',
-          resultado: 'DENEGADO',
-          motivo: 'Código no existe en el sistema oficial',
-          hora: ahora,
-          sector: 'N/A'
-        },
-        ...prev.slice(0, 19)
-      ]);
-    } else if (ticket.estado === 'MOROSO') {
-      // Socio con cuota pendiente
-      emitirSonido(false);
-      setTotalRechazos(prev => prev + 1);
-      setResultadoActual({
-        tipo: 'ERROR',
-        mensaje: 'SOCIO CON CUOTA PENDIENTE (ACCESO BLOQUEADO)',
-        detalle: ticket
-      });
-      setHistorial(prev => [
-        {
-          id: `log-${Date.now()}`,
-          codigo: ticket.codigo,
-          titular: ticket.titular,
-          resultado: 'DENEGADO',
-          motivo: 'Cuota de socio impaga. Regularizar en sede o web',
-          hora: ahora,
-          sector: ticket.sector
-        },
-        ...prev.slice(0, 19)
-      ]);
-    } else if (ticket.estado === 'UTILIZADO') {
-      // Entrada o membresía ya fue usada para este partido
-      emitirSonido(false);
-      setTotalRechazos(prev => prev + 1);
-      setResultadoActual({
-        tipo: 'DENEGADO',
-        mensaje: ticket.tipo === 'SOCIO' ? 'SOCIO YA INGRESÓ HOY AL ESTADIO' : 'ENTRADA YA UTILIZADA',
-        detalle: ticket
-      });
-      setHistorial(prev => [
-        {
-          id: `log-${Date.now()}`,
-          codigo: ticket.codigo,
-          titular: ticket.titular,
-          resultado: 'DENEGADO',
-          motivo: `Ya ingresó a las ${ticket.horaIngreso || 'previamente'} por ${ticket.puertaIngreso || 'otra puerta'}`,
-          hora: ahora,
-          sector: ticket.sector
-        },
-        ...prev.slice(0, 19)
-      ]);
-    } else {
-      // Entrada o Membresía válida y disponible -> APROBAR Y MARCAR COMO USADA
-      emitirSonido(true);
-      const ticketActualizado: TicketRecord = {
-        ...ticket,
-        estado: 'UTILIZADO',
-        horaIngreso: ahora,
-        puertaIngreso: puertaActual
-      };
+          tipo: cleanCode.includes('SOCIO') ? 'SOCIO' : 'TICKET',
+          partido: data.partido || 'Deportes Puerto Montt • Temporada 2026',
+          titular: data.titular || 'Hincha Albiverde',
+          rut: data.rut || '18.492.301-8',
+          sector: data.sector || 'Galería Sur',
+          puerta: puertaActual,
+          estado: 'UTILIZADO',
+          horaIngreso: data.horaIngreso || ahora,
+          puertaIngreso: puertaActual
+        };
 
-      setTicketsDB(prev => ({
-        ...prev,
-        [cleanCode]: ticketActualizado
-      }));
+        setResultadoActual({
+          tipo: 'EXITO',
+          mensaje: data.mensaje || 'ACCESO PERMITIDO - BIENVENIDO A CHINQUIHUE',
+          detalle: ticketExito
+        });
 
-      setTotalValidadas(prev => prev + 1);
-      setAforoActual(prev => prev + 1);
-      setResultadoActual({
-        tipo: 'EXITO',
-        mensaje: ticket.tipo === 'SOCIO' 
-          ? 'ACCESO LIBERADO • BIENVENIDO SOCIO' 
-          : 'ACCESO PERMITIDO - BIENVENIDO A CHINQUIHUE',
-        detalle: ticketActualizado
-      });
+        setHistorial(prev => [
+          {
+            id: `log-${Date.now()}`,
+            codigo: cleanCode,
+            titular: data.titular,
+            resultado: 'PERMITIDO',
+            motivo: data.mensaje || 'Acceso verificado en servidor',
+            hora: data.horaIngreso || ahora,
+            sector: data.sector || 'Galería Sur'
+          },
+          ...prev.slice(0, 19)
+        ]);
 
-      setHistorial(prev => [
-        {
-          id: `log-${Date.now()}`,
-          codigo: ticket.codigo,
-          titular: ticket.titular,
-          resultado: 'PERMITIDO',
-          motivo: ticket.tipo === 'SOCIO' ? 'Acceso liberado por membresía' : 'Acceso concedido',
-          hora: ahora,
-          sector: ticket.sector
-        },
-        ...prev.slice(0, 19)
-      ]);
+        setCodigoInput('');
+        if (inputRef.current) inputRef.current.focus();
+        return;
+      } else {
+        // Rechazo devuelto por el servidor (duplicado, moroso o inexistente)
+        emitirSonido(false);
+        setTotalRechazos(prev => prev + 1);
+
+        const ticketRechazo: TicketRecord = {
+          codigo: cleanCode,
+          tipo: cleanCode.includes('SOCIO') ? 'SOCIO' : 'TICKET',
+          partido: data.partido || 'Deportes Puerto Montt',
+          titular: data.titular || 'Desconocido',
+          rut: data.rut || '---',
+          sector: data.sector || '---',
+          puerta: puertaActual,
+          estado: data.estado === 'YA_UTILIZADO' ? 'UTILIZADO' : (data.estado === 'SOCIO_MOROSO' ? 'MOROSO' : 'INVALIDO'),
+          horaIngreso: data.horaIngreso || ahora
+        };
+
+        setResultadoActual({
+          tipo: data.estado === 'YA_UTILIZADO' ? 'DENEGADO' : 'ERROR',
+          mensaje: data.mensaje || 'ACCESO RECHAZADO',
+          detalle: ticketRechazo
+        });
+
+        setHistorial(prev => [
+          {
+            id: `log-${Date.now()}`,
+            codigo: cleanCode,
+            titular: data.titular || 'Desconocido',
+            resultado: 'DENEGADO',
+            motivo: data.mensaje || 'Entrada no permitida por torniquete',
+            hora: ahora,
+            sector: data.sector || 'N/A'
+          },
+          ...prev.slice(0, 19)
+        ]);
+
+        setCodigoInput('');
+        if (inputRef.current) inputRef.current.focus();
+        return;
+      }
+    } catch (error) {
+      // 2. Modo Offline / Fallback si el servidor está apagado
+      const ticket = ticketsDB[cleanCode];
+
+      if (!ticket) {
+        emitirSonido(false);
+        setTotalRechazos(prev => prev + 1);
+        setResultadoActual({
+          tipo: 'ERROR',
+          mensaje: 'CÓDIGO NO REGISTRADO O FRAUDULENTO',
+        });
+        setHistorial(prev => [
+          {
+            id: `log-${Date.now()}`,
+            codigo: cleanCode,
+            titular: 'Desconocido',
+            resultado: 'DENEGADO',
+            motivo: 'Código no existe en el sistema oficial (Modo Local)',
+            hora: ahora,
+            sector: 'N/A'
+          },
+          ...prev.slice(0, 19)
+        ]);
+      } else if (ticket.estado === 'MOROSO') {
+        emitirSonido(false);
+        setTotalRechazos(prev => prev + 1);
+        setResultadoActual({
+          tipo: 'ERROR',
+          mensaje: 'SOCIO CON CUOTA PENDIENTE (ACCESO BLOQUEADO)',
+          detalle: ticket
+        });
+        setHistorial(prev => [
+          {
+            id: `log-${Date.now()}`,
+            codigo: ticket.codigo,
+            titular: ticket.titular,
+            resultado: 'DENEGADO',
+            motivo: 'Cuota de socio impaga. Regularizar en sede o web',
+            hora: ahora,
+            sector: ticket.sector
+          },
+          ...prev.slice(0, 19)
+        ]);
+      } else if (ticket.estado === 'UTILIZADO') {
+        emitirSonido(false);
+        setTotalRechazos(prev => prev + 1);
+        setResultadoActual({
+          tipo: 'DENEGADO',
+          mensaje: ticket.tipo === 'SOCIO' ? 'SOCIO YA INGRESÓ HOY AL ESTADIO' : 'ENTRADA YA UTILIZADA',
+          detalle: ticket
+        });
+        setHistorial(prev => [
+          {
+            id: `log-${Date.now()}`,
+            codigo: ticket.codigo,
+            titular: ticket.titular,
+            resultado: 'DENEGADO',
+            motivo: `Ya ingresó a las ${ticket.horaIngreso || 'previamente'} por ${ticket.puertaIngreso || 'otra puerta'}`,
+            hora: ahora,
+            sector: ticket.sector
+          },
+          ...prev.slice(0, 19)
+        ]);
+      } else {
+        emitirSonido(true);
+        const ticketActualizado: TicketRecord = {
+          ...ticket,
+          estado: 'UTILIZADO',
+          horaIngreso: ahora,
+          puertaIngreso: puertaActual
+        };
+
+        setTicketsDB(prev => ({
+          ...prev,
+          [cleanCode]: ticketActualizado
+        }));
+
+        setTotalValidadas(prev => prev + 1);
+        setAforoActual(prev => prev + 1);
+        setResultadoActual({
+          tipo: 'EXITO',
+          mensaje: ticket.tipo === 'SOCIO' 
+            ? 'ACCESO LIBERADO • BIENVENIDO SOCIO' 
+            : 'ACCESO PERMITIDO - BIENVENIDO A CHINQUIHUE',
+          detalle: ticketActualizado
+        });
+
+        setHistorial(prev => [
+          {
+            id: `log-${Date.now()}`,
+            codigo: ticket.codigo,
+            titular: ticket.titular,
+            resultado: 'PERMITIDO',
+            motivo: ticket.tipo === 'SOCIO' ? 'Acceso liberado por membresía' : 'Acceso concedido (Modo Local)',
+            hora: ahora,
+            sector: ticket.sector
+          },
+          ...prev.slice(0, 19)
+        ]);
+      }
     }
 
     setCodigoInput('');
@@ -362,6 +460,15 @@ export const ValidadorTicket: React.FC = () => {
               title={sonidoHabilitado ? 'Sonido Activado' : 'Sonido Silenciado'}
             >
               {sonidoHabilitado ? <FaVolumeUp /> : <FaVolumeMute />}
+            </button>
+
+            {/* Botón Reiniciar Operación / Poner a 0 */}
+            <button
+              onClick={handleReiniciarValidador}
+              className="flex items-center gap-1.5 text-xs bg-rose-900/60 hover:bg-rose-800 text-rose-200 border border-rose-700/50 px-3 py-1.5 rounded-lg transition"
+              title="Reiniciar conteo a 0 para demostración en vivo"
+            >
+              <FaSyncAlt /> Iniciar en 0
             </button>
           </div>
         </div>

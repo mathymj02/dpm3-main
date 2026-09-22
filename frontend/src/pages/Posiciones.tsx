@@ -79,10 +79,10 @@ export const Posiciones = () => {
       
       {/* Encabezado Institucional */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-5xl font-black text-azul-dpm mb-2 flex items-center justify-center gap-3">
-          <FaTrophy className="text-amber-500" /> Tabla Oficial de Posiciones 2025
+        <h1 className="text-3xl md:text-5xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] mb-2 flex items-center justify-center gap-3">
+          <FaTrophy className="text-amarillo-dpm" /> Tabla Oficial de Posiciones 2025
         </h1>
-        <p className="text-base text-gray-600 font-medium">
+        <p className="text-base text-slate-200 font-medium drop-shadow">
           Segunda División Profesional • ANFP Chile — Datos Oficiales Actualizados por el Club
         </p>
 
