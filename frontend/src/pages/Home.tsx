@@ -24,7 +24,6 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Card } from '../components/ui/Card';
 import { Novedad, Jugador, Producto } from '../types';
 import api from '../api/axiosConfig';
 
@@ -165,9 +164,13 @@ export const Home = () => {
       </section>
 
       {/* SECCIÓN 2: Últimas Novedades / Noticias */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-azul-dpm mb-8 text-center border-b-2 border-verde-dpm inline-block pb-2">Últimas Novedades</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-black text-white border-b-2 border-emerald-400 inline-block pb-2 drop-shadow">
+              Últimas Novedades
+            </h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {novedades.map((nov, i) => (
               <motion.div
@@ -176,18 +179,29 @@ export const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }} // Anima cuando entra al viewport
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.2 }}
+                className="h-full"
               >
-                <Card className="h-full flex flex-col">
-                  <img src={nov.imagenUrl} alt={nov.titulo} className="w-full h-48 object-cover" />
-                  <div className="p-4 flex flex-col flex-grow">
-                    <p className="text-xs text-gray-500 mb-2">{nov.fechaPublicacion}</p>
-                    <h3 className="text-xl font-bold mb-2">{nov.titulo}</h3>
-                    <p className="text-gray-600 flex-grow">{nov.contenido.substring(0, 100)}...</p>
-                    <Link to={`/novedades/${nov.id}`} className="text-verde-dpm font-bold mt-4 hover:underline">
+                <div className="bg-slate-900/85 backdrop-blur-md rounded-2xl border border-white/10 hover:border-emerald-500/50 transition-all duration-300 shadow-xl overflow-hidden flex flex-col h-full text-white group">
+                  <div className="w-full h-48 overflow-hidden bg-slate-950">
+                    <img 
+                      src={nov.imagenUrl} 
+                      alt={nov.titulo} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
+                  </div>
+                  <div className="p-5 flex flex-col flex-grow">
+                    <span className="text-xs text-emerald-400 font-bold mb-2 block">{nov.fechaPublicacion}</span>
+                    <h3 className="text-xl font-bold mb-2 text-white group-hover:text-emerald-300 transition-colors line-clamp-2">
+                      {nov.titulo}
+                    </h3>
+                    <p className="text-slate-300 text-xs sm:text-sm flex-grow line-clamp-3">
+                      {nov.contenido.substring(0, 120)}...
+                    </p>
+                    <Link to={`/novedades/${nov.id}`} className="text-emerald-400 font-bold mt-4 hover:text-emerald-300 transition-colors inline-flex items-center gap-1 text-sm">
                       Leer más &rarr;
                     </Link>
                   </div>
-                </Card>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -195,11 +209,15 @@ export const Home = () => {
       </section>
 
       {/* SECCIÓN 3: Vista Previa del Plantel */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-slate-950/50 backdrop-blur-sm border-y border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-azul-dpm border-b-2 border-verde-dpm inline-block pb-2">Nuestro Plantel</h2>
-            <Link to="/jugadores" className="text-verde-dpm font-bold hover:underline">Ver todos</Link>
+            <h2 className="text-3xl font-black text-white border-b-2 border-emerald-400 inline-block pb-2 drop-shadow">
+              Nuestro Plantel
+            </h2>
+            <Link to="/jugadores" className="text-emerald-400 hover:text-emerald-300 font-bold text-sm flex items-center gap-1">
+              Ver todos &rarr;
+            </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {jugadores.map((jug, i) => (
@@ -210,11 +228,20 @@ export const Home = () => {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
               >
-                <Card className="text-center p-4">
-                  <img src={jug.fotoUrl} alt={jug.nombre} className="w-32 h-32 mx-auto rounded-full object-cover mb-4 border-4 border-gray-100" />
-                  <h3 className="text-lg font-bold">{jug.nombre}</h3>
-                  <p className="text-verde-dpm font-medium">{jug.posicion}</p>
-                </Card>
+                <Link to={`/jugadores/${jug.id}`} className="block">
+                  <div className="bg-slate-900/85 backdrop-blur-md rounded-2xl border border-white/10 hover:border-amarillo-dpm/60 transition-all duration-300 p-5 text-center shadow-xl text-white group cursor-pointer">
+                    <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-4 border-4 border-emerald-500/40 shadow-xl ring-4 ring-white/10 group-hover:ring-amarillo-dpm/40 transition-all">
+                      <img 
+                        src={jug.fotoUrl} 
+                        alt={jug.nombre} 
+                        className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" 
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/images/jugador-5.png'; }}
+                      />
+                    </div>
+                    <h3 className="text-lg font-black text-white group-hover:text-amarillo-dpm transition-colors truncate">{jug.nombre}</h3>
+                    <p className="text-emerald-400 font-bold text-xs uppercase tracking-wider mt-1">{jug.posicion}</p>
+                  </div>
+                </Link>
               </motion.div>
             ))}
           </div>
@@ -222,24 +249,36 @@ export const Home = () => {
       </section>
 
       {/* SECCIÓN 4: Tienda Oficial y Clima */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-12">
             <div className="flex-grow">
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-azul-dpm border-b-2 border-verde-dpm inline-block pb-2">Tienda Oficial</h2>
-                <Link to="/tienda" className="text-verde-dpm font-bold hover:underline">Ver tienda</Link>
+                <h2 className="text-3xl font-black text-white border-b-2 border-emerald-400 inline-block pb-2 drop-shadow">
+                  Tienda Oficial
+                </h2>
+                <Link to="/tienda" className="text-emerald-400 hover:text-emerald-300 font-bold text-sm">
+                  Ver tienda &rarr;
+                </Link>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {productos.map((prod, i) => (
                   <motion.div key={prod.id} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: i * 0.1 }}>
-                    <Card className="p-4 text-center">
-                      <img src={prod.imagenUrl} alt={prod.nombre} className="w-full h-40 object-contain mb-4" />
-                      <h3 className="font-bold text-gray-800">{prod.nombre}</h3>
-                      <p className="text-xl font-bold text-verde-dpm my-2">
-                        {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(prod.precio)}
-                      </p>
-                    </Card>
+                    <div className="bg-slate-900/85 backdrop-blur-md rounded-2xl border border-white/10 hover:border-emerald-500/50 transition-all p-5 text-center shadow-xl flex flex-col justify-between h-full group">
+                      <div className="w-full h-40 flex items-center justify-center p-2 mb-4 bg-slate-950/50 rounded-xl">
+                        <img 
+                          src={prod.imagenUrl} 
+                          alt={prod.nombre} 
+                          className="max-h-full max-w-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform" 
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-base truncate">{prod.nombre}</h3>
+                        <p className="text-xl font-black text-amarillo-dpm font-mono my-2">
+                          {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(prod.precio)}
+                        </p>
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -247,18 +286,18 @@ export const Home = () => {
             
             {/* Widget del Clima */}
             <div className="md:w-80 flex-shrink-0">
-              <h2 className="text-xl font-bold text-azul-dpm mb-4">Clima en Puerto Montt</h2>
-              <Card className="p-6 bg-gradient-to-br from-blue-500 to-blue-700 text-white text-center h-full flex flex-col justify-center">
+              <h2 className="text-xl font-black text-white mb-4">Clima en Puerto Montt</h2>
+              <div className="p-6 bg-gradient-to-br from-azul-dpm via-slate-900 to-slate-950 rounded-2xl border border-sky-400/30 text-white text-center shadow-2xl h-full flex flex-col justify-center">
                 {weather ? (
                   <div>
-                    <div className="text-5xl font-bold mb-2">{weather.temperature}°C</div>
-                    <p className="text-lg">Viento: {weather.windspeed} km/h</p>
-                    <p className="mt-4 text-sm opacity-80">Estadio Chinquihue</p>
+                    <div className="text-5xl font-black mb-2 text-sky-300 drop-shadow">{weather.temperature}°C</div>
+                    <p className="text-base text-slate-200 font-medium">Viento: {weather.windspeed} km/h</p>
+                    <p className="mt-4 text-xs font-bold text-emerald-400 uppercase tracking-widest">Estadio Chinquihue</p>
                   </div>
                 ) : (
-                  <p>Cargando clima...</p>
+                  <p className="text-sm text-slate-400">Cargando clima...</p>
                 )}
-              </Card>
+              </div>
             </div>
           </div>
         </div>
@@ -288,7 +327,7 @@ export const Home = () => {
       </section>
 
       {/* SECCIÓN 6: Mascota Oficial "Chinquihuin" y DPM TV */}
-      <section className="py-16 bg-white/90 backdrop-blur-sm">
+      <section className="py-16 bg-slate-950/60 backdrop-blur-sm border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             

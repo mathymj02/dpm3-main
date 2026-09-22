@@ -15,7 +15,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { LoginRequest } from '../types';
 import { toastSuccess, toastError } from '../components/ui/Toast';
-import { FaLock, FaEnvelope, FaUserShield, FaTicketAlt, FaFutbol } from 'react-icons/fa';
+import { FaLock, FaEnvelope, FaUserShield, FaTicketAlt } from 'react-icons/fa';
 
 export const Login = () => {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<LoginRequest>();
@@ -46,8 +46,12 @@ export const Login = () => {
         
         {/* Encabezado */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 shadow-inner mb-2">
-            <FaFutbol className="text-2xl animate-pulse" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-emerald-400/30 p-2.5 shadow-xl mb-2">
+            <img 
+              src="/images/logo-deportes-puertomontt.png" 
+              alt="Club Deportes Puerto Montt" 
+              className="w-full h-full object-contain drop-shadow-md"
+            />
           </div>
           <h2 className="text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
             Iniciar Sesión
