@@ -53,12 +53,21 @@ export const Home = () => {
               { id: '3', titulo: 'Gran debut 2025: 4 a cero a Brujas de Salamanca', contenido: 'Con un contundente triunfo debutó Deportes Puerto Montt en la Segunda División...', imagenUrl: '/images/novedad3.jpeg', fechaPublicacion: '03-07-2025', autorNombre: 'Comunicaciones DPM' },
             ]};
           }),
-          api.get('/jugadores').catch(() => ({ data: [
-            { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-5.png', descripcion: 'Muro en el arco con reflejos felinos.' },
-            { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-rodriguez.jpg', descripcion: 'Líder en el mediocampo y orden táctico.' },
-            { id: '3', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 29, nacionalidad: 'Chileno', fotoUrl: '/images/jugadores-1.png', descripcion: 'Velocidad y compromiso defensivo.' },
-            { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chileno', fotoUrl: '/images/jugador-riveros.jpg', descripcion: 'Líder silencioso y gran juego de pies.' }
-          ]})),
+          api.get('/jugadores').catch(() => {
+            const savedPlayers = localStorage.getItem('dpm_jugadores_data');
+            if (savedPlayers) {
+              try {
+                const parsed = JSON.parse(savedPlayers);
+                if (Array.isArray(parsed) && parsed.length > 0) return { data: parsed };
+              } catch {}
+            }
+            return { data: [
+              { id: '1', nombre: 'Luis Ureta', posicion: 'Portero', edad: 26, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Luis-Ureta.webp', descripcion: 'Muro en el arco con reflejos felinos.' },
+              { id: '2', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 28, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/VICENTE-YANEZ.webp', descripcion: 'Velocidad y compromiso defensivo.' },
+              { id: '3', nombre: 'Maximiliano Riveros', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Maximiliano-Riveros.webp', descripcion: 'Líder silencioso y gran juego aéreo.' },
+              { id: '11', nombre: 'Reiner Castro', posicion: 'Delantero', edad: 30, nacionalidad: 'Venezuela', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Reiner-Castro.webp', descripcion: 'Extremo supersónico y figura albiverde.' }
+            ]};
+          }),
           api.get('/productos').catch(() => ({ data: [
             { id: '1', nombre: 'Polera Oficial DPM', precio: 15000, imagenUrl: '/images/polera.jpg', stock: 50, categoria: 'Indumentaria' },
             { id: '2', nombre: 'Short Oficial DPM', precio: 10000, imagenUrl: '/images/short.webp', stock: 40, categoria: 'Indumentaria' },
