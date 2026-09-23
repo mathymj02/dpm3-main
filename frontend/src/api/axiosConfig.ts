@@ -43,8 +43,8 @@ api.interceptors.request.use(
     // Buscar el JWT del usuario autenticado
     const token = localStorage.getItem('token');
     
-    // Si existe, inyectarlo en el header 'Authorization'
-    if (token && config.headers) {
+    // Solo inyectar en 'Authorization' si es un token real (no offline simulado)
+    if (token && !token.startsWith('dpm-jwt-offline-') && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -58,11 +58,13 @@ api.interceptors.response.use(
   (error) => {
     // Si la API responde con un 401 Unauthorized (No autorizado / Sesión expirada)
     if (error.response && error.response.status === 401) {
-      // Limpiar datos corruptos o caducados
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Redirigir al inicio de sesión obligatoriamente
-      window.location.href = '/login';
+      const token = localStorage.getItem('token');
+      // Solo forzar cierre y redirección si era un token real que caducó
+      if (token && !token.startsWith('dpm-jwt-offline-')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

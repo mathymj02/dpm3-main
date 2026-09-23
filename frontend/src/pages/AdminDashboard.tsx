@@ -342,18 +342,18 @@ export const AdminDashboard: React.FC = () => {
   // 5. ESTADO DINÁMICO DE JUGADORES (CRUD ADULTOS MAYORES / DIRECTIVA)
   // =========================================================================
   const defaultPlantel: Jugador[] = [
-    { id: '1', nombre: 'Luis Ureta', posicion: 'Portero', edad: 26, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Luis-Ureta.webp', dorsal: 1, partidosJugados: 16, atajadas: 52, precisionPases: '89% Atajadas', clubOrigen: "O'Higgins / DPM Chinquihue", pieHabil: 'Derecho', descripcion: '🧤 "Pelle": Arquero titular con reflejos felinos y seguridad aérea.' },
-    { id: '2', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 28, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/VICENTE-YANEZ.webp', dorsal: 4, partidosJugados: 16, recuperaciones: 48, goles: 1, precisionPases: '84% Duelos', clubOrigen: 'Huachipato / DPM', pieHabil: 'Derecho', descripcion: '⚡ "Chente": Defensa aguerrido, rápido en las coberturas y de gran quite.' },
-    { id: '3', nombre: 'Maximiliano Riveros', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Maximiliano-Riveros.webp', dorsal: 6, partidosJugados: 15, recuperaciones: 45, goles: 2, precisionPases: '88% Pases', clubOrigen: 'Deportes Valdivia / DPM', pieHabil: 'Derecho', descripcion: '🦁 "Maxi": Capitán y pilar de la zaga central. Liderazgo y salida limpia.' },
-    { id: '4', nombre: 'Daniel Bahamonde', posicion: 'Defensa', edad: 24, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/DANIEL-BAHAMONDE.webp', dorsal: 14, partidosJugados: 15, recuperaciones: 39, asistencias: 4, precisionPases: '85% Recorrido', clubOrigen: 'Cantera DPM Chinquihue', pieHabil: 'Izquierdo', descripcion: '🏃‍♂️ "Pájaro": Canterano puertomontino del carril izquierdo. Proyección ofensiva.' },
-    { id: '5', nombre: 'Byron Nieto', posicion: 'Defensa', edad: 27, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/BYRON-NIETO.webp', dorsal: 2, partidosJugados: 14, recuperaciones: 36, asistencias: 3, precisionPases: '83% Centros', clubOrigen: 'Universidad Católica / DPM', pieHabil: 'Derecho', descripcion: '⚡ "El Rayo": Lateral derecho con potencia, velocidad y centros quirúrgicos.' },
-    { id: '6', nombre: 'Jesús Pino', posicion: 'Defensa', edad: 32, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Jesus-Pino.webp', dorsal: 3, partidosJugados: 13, recuperaciones: 38, goles: 1, precisionPases: '82% Anticipo', clubOrigen: 'Unión San Felipe / DPM', pieHabil: 'Derecho', descripcion: '🧱 Central de vasta experiencia. Fortaleza física, anticipación y voz de mando.' },
-    { id: '7', nombre: 'Juan Miguel Jaime', posicion: 'Volante', edad: 30, nacionalidad: 'Argentina', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/JUAN-JAIME.webp', dorsal: 8, partidosJugados: 16, goles: 3, asistencias: 5, precisionPases: '89% Precisión', clubOrigen: 'Talleres / DPM Chinquihue', pieHabil: 'Derecho', descripcion: '🎩 "El Puma de Monteros": Mediocampista de corte y distribución con visión de juego.' },
-    { id: '8', nombre: 'Gabriel Castillo', posicion: 'Volante', edad: 26, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/GABRIEL-CASTILLO.webp', dorsal: 5, partidosJugados: 15, recuperaciones: 42, asistencias: 3, precisionPases: '86% Quites', clubOrigen: 'Cobresal / DPM', pieHabil: 'Derecho', descripcion: '⚔️ "Casti": Volante mixto de gran recuperación física, presión alta y remate.' },
-    { id: '9', nombre: 'Danilo Díaz', posicion: 'Volante', edad: 23, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Danilo-Diaz.webp', dorsal: 10, partidosJugados: 16, goles: 4, asistencias: 7, precisionPases: '91% Pases Clave', clubOrigen: 'Colo Colo / DPM', pieHabil: 'Derecho', descripcion: '🪄 "Chico Díaz": Volante creativo de técnica depurada y lanzador oficial.' },
-    { id: '10', nombre: 'Cristóbal Vargas', posicion: 'Volante', edad: 25, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Cristobal-Vargas.webp', dorsal: 17, partidosJugados: 14, goles: 3, asistencias: 4, precisionPases: '85% Regates', clubOrigen: 'Universidad Católica / DPM', pieHabil: 'Derecho', descripcion: '⚡ "Gato": Desequilibrio individual, cambio de ritmo y llegada al área.' },
-    { id: '11', nombre: 'Reiner Castro', posicion: 'Delantero', edad: 30, nacionalidad: 'Venezuela', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Reiner-Castro.webp', dorsal: 7, partidosJugados: 16, goles: 9, asistencias: 6, precisionPases: '87% Desborde', clubOrigen: 'Caracas FC / Deportes Puerto Montt', pieHabil: 'Derecho', descripcion: '🚀 "Ñeñe": Extremo supersónico y figura albiverde. Gambeta, velocidad y gol.' },
-    { id: '12', nombre: 'Luciano Vázquez', posicion: 'Delantero', edad: 38, nacionalidad: 'Argentina', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Luciano-Vasquez.webp', dorsal: 9, partidosJugados: 15, goles: 11, asistencias: 3, precisionPases: '80% Definición', clubOrigen: 'Ñublense / DPM Chinquihue', pieHabil: 'Derecho', descripcion: '🦈 "Tiburón": Centrodelantero goleador implacable dentro del área y experiencia.' }
+    { id: '1', nombre: 'Luis Ureta', posicion: 'Portero', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/luis-ureta.webp', dorsal: 1, partidosJugados: 16, atajadas: 52, precisionPases: '89% Atajadas', clubOrigen: "O'Higgins / DPM Chinquihue", pieHabil: 'Derecho', descripcion: '🧤 "Pelle": Arquero titular con reflejos felinos y seguridad aérea.' },
+    { id: '2', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 28, nacionalidad: 'Chile', fotoUrl: '/images/vicente-yanez.webp', dorsal: 4, partidosJugados: 16, recuperaciones: 48, goles: 1, precisionPases: '84% Duelos', clubOrigen: 'Huachipato / DPM', pieHabil: 'Derecho', descripcion: '⚡ "Chente": Defensa aguerrido, rápido en las coberturas y de gran quite.' },
+    { id: '3', nombre: 'Maximiliano Riveros', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/maximiliano-riveros.webp', dorsal: 6, partidosJugados: 15, recuperaciones: 45, goles: 2, precisionPases: '88% Pases', clubOrigen: 'Deportes Valdivia / DPM', pieHabil: 'Derecho', descripcion: '🦁 "Maxi": Capitán y pilar de la zaga central. Liderazgo y salida limpia.' },
+    { id: '4', nombre: 'Daniel Bahamonde', posicion: 'Defensa', edad: 24, nacionalidad: 'Chile', fotoUrl: '/images/daniel-bahamonde.webp', dorsal: 14, partidosJugados: 15, recuperaciones: 39, asistencias: 4, precisionPases: '85% Recorrido', clubOrigen: 'Cantera DPM Chinquihue', pieHabil: 'Izquierdo', descripcion: '🏃‍♂️ "Pájaro": Canterano puertomontino del carril izquierdo. Proyección ofensiva.' },
+    { id: '5', nombre: 'Byron Nieto', posicion: 'Defensa', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/byron-nieto.webp', dorsal: 2, partidosJugados: 14, recuperaciones: 36, asistencias: 3, precisionPases: '83% Centros', clubOrigen: 'Universidad Católica / DPM', pieHabil: 'Derecho', descripcion: '⚡ "El Rayo": Lateral derecho con potencia, velocidad y centros quirúrgicos.' },
+    { id: '6', nombre: 'Jesús Pino', posicion: 'Defensa', edad: 32, nacionalidad: 'Chile', fotoUrl: '/images/jesus-pino.webp', dorsal: 3, partidosJugados: 13, recuperaciones: 38, goles: 1, precisionPases: '82% Anticipo', clubOrigen: 'Unión San Felipe / DPM', pieHabil: 'Derecho', descripcion: '🧱 Central de vasta experiencia. Fortaleza física, anticipación y voz de mando.' },
+    { id: '7', nombre: 'Juan Miguel Jaime', posicion: 'Volante', edad: 30, nacionalidad: 'Argentina', fotoUrl: '/images/juan-jaime.webp', dorsal: 8, partidosJugados: 16, goles: 3, asistencias: 5, precisionPases: '89% Precisión', clubOrigen: 'Talleres / DPM Chinquihue', pieHabil: 'Derecho', descripcion: '🎩 "El Puma de Monteros": Mediocampista de corte y distribución con visión de juego.' },
+    { id: '8', nombre: 'Gabriel Castillo', posicion: 'Volante', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/gabriel-castillo.webp', dorsal: 5, partidosJugados: 15, recuperaciones: 42, asistencias: 3, precisionPases: '86% Quites', clubOrigen: 'Cobresal / DPM', pieHabil: 'Derecho', descripcion: '⚔️ "Casti": Volante mixto de gran recuperación física, presión alta y remate.' },
+    { id: '9', nombre: 'Danilo Díaz', posicion: 'Volante', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/danilo-diaz.webp', dorsal: 10, partidosJugados: 16, goles: 4, asistencias: 7, precisionPases: '91% Pases Clave', clubOrigen: 'Colo Colo / DPM', pieHabil: 'Derecho', descripcion: '🪄 "Chico Díaz": Volante creativo de técnica depurada y lanzador oficial.' },
+    { id: '10', nombre: 'Cristóbal Vargas', posicion: 'Volante', edad: 25, nacionalidad: 'Chile', fotoUrl: '/images/harold-antinirre.webp', dorsal: 17, partidosJugados: 14, goles: 3, asistencias: 4, precisionPases: '85% Regates', clubOrigen: 'Universidad Católica / DPM', pieHabil: 'Derecho', descripcion: '⚡ "Gato": Desequilibrio individual, cambio de ritmo y llegada al área.' },
+    { id: '11', nombre: 'Reiner Castro', posicion: 'Delantero', edad: 30, nacionalidad: 'Venezuela', fotoUrl: '/images/reiner-castro.webp', dorsal: 7, partidosJugados: 16, goles: 9, asistencias: 6, precisionPases: '87% Desborde', clubOrigen: 'Caracas FC / Deportes Puerto Montt', pieHabil: 'Derecho', descripcion: '🚀 "Ñeñe": Extremo supersónico y figura albiverde. Gambeta, velocidad y gol.' },
+    { id: '12', nombre: 'Luciano Vázquez', posicion: 'Delantero', edad: 38, nacionalidad: 'Argentina', fotoUrl: '/images/luciano-vazquez.webp', dorsal: 9, partidosJugados: 15, goles: 11, asistencias: 3, precisionPases: '80% Definición', clubOrigen: 'Ñublense / DPM Chinquihue', pieHabil: 'Derecho', descripcion: '🦈 "Tiburón": Centrodelantero goleador implacable dentro del área y experiencia.' }
   ];
 
   const [jugadores, setJugadores] = useState<Jugador[]>(() => {
@@ -494,18 +494,18 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const fotosOficialesDisponibles = [
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Luis-Ureta.webp', label: 'Luis Ureta (Arq)' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/04/VICENTE-YANEZ.webp', label: 'Vicente Yáñez' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Maximiliano-Riveros.webp', label: 'Maxi Riveros' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/04/DANIEL-BAHAMONDE.webp', label: 'D. Bahamonde' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/04/BYRON-NIETO.webp', label: 'Byron Nieto' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Jesus-Pino.webp', label: 'Jesús Pino' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/04/JUAN-JAIME.webp', label: 'Juan Jaime' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/04/GABRIEL-CASTILLO.webp', label: 'G. Castillo' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Danilo-Diaz.webp', label: 'Danilo Díaz' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Cristobal-Vargas.webp', label: 'C. Vargas' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Reiner-Castro.webp', label: 'Reiner Castro' },
-    { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Luciano-Vasquez.webp', label: 'L. Vázquez' }
+    { url: '/images/luis-ureta.webp', label: 'Luis Ureta (Arq)' },
+    { url: '/images/vicente-yanez.webp', label: 'Vicente Yáñez' },
+    { url: '/images/maximiliano-riveros.webp', label: 'Maxi Riveros' },
+    { url: '/images/daniel-bahamonde.webp', label: 'D. Bahamonde' },
+    { url: '/images/byron-nieto.webp', label: 'Byron Nieto' },
+    { url: '/images/jesus-pino.webp', label: 'Jesús Pino' },
+    { url: '/images/juan-jaime.webp', label: 'Juan Jaime' },
+    { url: '/images/gabriel-castillo.webp', label: 'G. Castillo' },
+    { url: '/images/danilo-diaz.webp', label: 'Danilo Díaz' },
+    { url: '/images/harold-antinirre.webp', label: 'C. Vargas' },
+    { url: '/images/reiner-castro.webp', label: 'Reiner Castro' },
+    { url: '/images/luciano-vazquez.webp', label: 'L. Vázquez' }
   ];
 
   // =========================================================================

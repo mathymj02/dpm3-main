@@ -156,10 +156,10 @@ export const Home = () => {
               } catch {}
             }
             return { data: [
-              { id: '1', nombre: 'Luis Ureta', posicion: 'Portero', edad: 26, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Luis-Ureta.webp', descripcion: 'Muro en el arco con reflejos felinos.' },
-              { id: '2', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 28, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/04/VICENTE-YANEZ.webp', descripcion: 'Velocidad y compromiso defensivo.' },
-              { id: '3', nombre: 'Maximiliano Riveros', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Maximiliano-Riveros.webp', descripcion: 'Líder silencioso y gran juego aéreo.' },
-              { id: '11', nombre: 'Reiner Castro', posicion: 'Delantero', edad: 30, nacionalidad: 'Venezuela', fotoUrl: 'https://dpmchile.cl/wp-content/uploads/2026/03/Reiner-Castro.webp', descripcion: 'Extremo supersónico y figura albiverde.' }
+              { id: '1', nombre: 'Luis Ureta', posicion: 'Portero', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/luis-ureta.webp', descripcion: 'Muro en el arco con reflejos felinos.' },
+              { id: '2', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 28, nacionalidad: 'Chile', fotoUrl: '/images/vicente-yanez.webp', descripcion: 'Velocidad y compromiso defensivo.' },
+              { id: '3', nombre: 'Maximiliano Riveros', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/maximiliano-riveros.webp', descripcion: 'Líder silencioso y gran juego aéreo.' },
+              { id: '11', nombre: 'Reiner Castro', posicion: 'Delantero', edad: 30, nacionalidad: 'Venezuela', fotoUrl: '/images/reiner-castro.webp', descripcion: 'Extremo supersónico y figura albiverde.' }
             ]};
           }),
           api.get('/productos').catch(() => ({ data: [
@@ -460,6 +460,9 @@ export const Home = () => {
                       src={nov.imagenUrl} 
                       alt={nov.titulo} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/robo-balon.jpg';
+                      }}
                     />
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
@@ -543,6 +546,9 @@ export const Home = () => {
                           src={prod.imagenUrl} 
                           alt={prod.nombre} 
                           className="max-h-full max-w-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform" 
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/images/polera.jpg';
+                          }}
                         />
                       </div>
                       <div>
@@ -608,11 +614,11 @@ export const Home = () => {
             <div className="rounded-3xl bg-gradient-to-br from-azul-dpm to-slate-900 text-white p-8 sm:p-10 shadow-xl border border-white/10 flex flex-col sm:flex-row gap-6 items-center">
               <div className="w-32 h-32 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center p-3 shrink-0 overflow-hidden shadow-inner">
                 <img 
-                  src="https://dpmchile.cl/wp-content/uploads/2026/05/WhatsApp-Image-2026-05-28-at-22.30.44-2.webp" 
+                  src="/images/chinquihuin.webp" 
                   alt="Chinquihuin Mascota DPM" 
                   className="w-full h-full object-cover rounded-xl"
                   onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
+                    (e.target as HTMLImageElement).src = '/images/logo-deportes-puertomontt.png';
                   }}
                 />
               </div>
