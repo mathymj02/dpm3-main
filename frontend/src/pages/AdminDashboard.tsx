@@ -43,12 +43,14 @@ import {
   FaChartLine,
   FaSyncAlt,
   FaUserPlus,
-  FaUsers
+  FaUsers,
+  FaCalendarAlt,
+  FaYoutube
 } from 'react-icons/fa';
 import { Posicion, Novedad, Producto, Jugador } from '../types';
 
 export const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'posiciones' | 'novedades' | 'productos' | 'jugadores'>('posiciones');
+  const [activeTab, setActiveTab] = useState<'posiciones' | 'novedades' | 'productos' | 'jugadores' | 'partidos'>('posiciones');
 
   // =========================================================================
   // 1. ESTADO DE TABLA DE POSICIONES
@@ -469,6 +471,71 @@ export const AdminDashboard: React.FC = () => {
     { url: 'https://dpmchile.cl/wp-content/uploads/2026/03/Luciano-Vasquez.webp', label: 'L. Vázquez' }
   ];
 
+  // =========================================================================
+  // ESTADO DE PARTIDOS & FIXTURE / RESÚMENES TNT SPORTS
+  // =========================================================================
+  const defaultPartidosAdmin = {
+    proximo: {
+      rival: 'Ñublense',
+      escudoRival: 'https://dpmchile.cl/wp-content/uploads/2024/08/nublense.webp',
+      torneo: 'Copa Chile Coca-Cola Sin Azúcar 2026',
+      fecha: 'Domingo 28 de Septiembre 2026',
+      hora: '18:00 hrs',
+      estadio: 'Estadio Bicentenario Chinquihue',
+      esLocal: true,
+      ticketLink: '/entradas'
+    },
+    ultimo: {
+      rival: 'Magallanes',
+      escudoRival: '/images/escudo-magallanes.png',
+      torneo: 'Copa Chile Coca-Cola Sin Azúcar 2026',
+      fecha: 'Sábado 21 de Septiembre 2026',
+      golesDpm: 2,
+      golesRival: 0,
+      youtubeId: 'ScQrhZAB-lg',
+      youtubeTitulo: 'Deportes Puerto Montt 2 - 0 Magallanes | Resumen Oficial TNT Sports'
+    }
+  };
+
+  const [partidosForm, setPartidosForm] = useState(() => {
+    const saved = localStorage.getItem('dpm_partidos_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return defaultPartidosAdmin;
+  });
+
+  const handleGuardarPartidos = () => {
+    let ytId = (partidosForm.ultimo.youtubeId || '').trim();
+    if (ytId.includes('watch?v=')) {
+      ytId = ytId.split('watch?v=')[1].split('&')[0];
+    } else if (ytId.includes('youtu.be/')) {
+      ytId = ytId.split('youtu.be/')[1].split('?')[0];
+    } else if (ytId.includes('embed/')) {
+      ytId = ytId.split('embed/')[1].split('?')[0];
+    }
+
+    const payload = {
+      ...partidosForm,
+      ultimo: {
+        ...partidosForm.ultimo,
+        youtubeId: ytId || 'ScQrhZAB-lg'
+      }
+    };
+
+    localStorage.setItem('dpm_partidos_data', JSON.stringify(payload));
+    setPartidosForm(payload);
+    toastSuccess('¡Fixture, Próximo Partido y Resumen TNT Sports actualizados con éxito!');
+  };
+
+  const handleRestablecerPartidos = () => {
+    localStorage.removeItem('dpm_partidos_data');
+    setPartidosForm(defaultPartidosAdmin);
+    toastInfo('Valores de partidos y video restablecidos a los datos oficiales por defecto.');
+  };
+
   // Guardar Posiciones en LocalStorage
   const guardarPosiciones = (nuevas: Posicion[]) => {
     setPosiciones(nuevas);
@@ -765,6 +832,17 @@ export const AdminDashboard: React.FC = () => {
               }`}
             >
               <FaUserFriends /> Plantel Profesional
+            </button>
+
+            <button
+              onClick={() => setActiveTab('partidos')}
+              className={`py-4 border-b-2 font-bold text-sm flex items-center gap-2 whitespace-nowrap transition ${
+                activeTab === 'partidos'
+                  ? 'border-verde-dpm text-verde-dpm'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <FaCalendarAlt /> Próximo Partido & TNT Sports
             </button>
           </nav>
         </div>
@@ -1889,6 +1967,315 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* PESTAÑA 5: GESTIÓN DE FIXTURE, PRÓXIMO PARTIDO & TNT SPORTS       */}
+        {/* ================================================================= */}
+        {activeTab === 'partidos' && (
+          <div className="p-6 sm:p-8 space-y-8 bg-slate-50/50">
+            {/* Encabezado Explicativo amigable para adultos mayores */}
+            <div className="bg-gradient-to-r from-azul-dpm to-slate-900 text-white p-6 rounded-2xl shadow-md border border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-amarillo-dpm bg-amarillo-dpm/20 px-3 py-1 rounded-full border border-amarillo-dpm/40">
+                  Control de Cartelera & Multimedia
+                </span>
+                <h2 className="text-2xl font-black mt-2">Gestión del Próximo Encuentro y Resumen TNT Sports</h2>
+                <p className="text-sm text-gray-200 mt-1">
+                  Aquí la directiva puede actualizar el rival de turno, horario, venta de entradas y el video oficial de YouTube de TNT Sports con solo pegar el enlace.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGuardarPartidos}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2 text-sm cursor-pointer"
+                >
+                  <FaSave /> Guardar Cambios en Vivo
+                </button>
+                <button
+                  onClick={handleRestablecerPartidos}
+                  className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-3 rounded-xl transition flex items-center gap-2 text-xs cursor-pointer border border-white/20"
+                >
+                  <FaUndo /> Restablecer
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* TARJETA 1: PRÓXIMO ENCUENTRO */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5">
+                <div className="flex items-center gap-2 pb-3 border-b border-gray-100 text-verde-dpm font-black text-lg">
+                  <FaCalendarAlt /> Próximo Encuentro (Cartelera Principal)
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre del Rival</label>
+                    <input
+                      type="text"
+                      value={partidosForm.proximo.rival}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        proximo: { ...partidosForm.proximo, rival: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold focus:ring-2 focus:ring-verde-dpm focus:border-verde-dpm"
+                      placeholder="Ej: Ñublense, Provincial Osorno, etc."
+                    />
+                    {/* Botones de sugerencia rápida */}
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <span className="text-[10px] text-gray-500 font-bold self-center mr-1">Rápido:</span>
+                      {['Ñublense', 'Provincial Osorno', 'Deportes Concepción', 'Deportes Melipilla', 'Deportes Temuco', 'Rangers'].map((rivalName) => (
+                        <button
+                          key={rivalName}
+                          type="button"
+                          onClick={() => {
+                            let escudo = '/images/escudo-concepcion.png';
+                            if (rivalName === 'Provincial Osorno') escudo = '/images/escudo-osorno.jpg';
+                            if (rivalName === 'Deportes Temuco') escudo = '/images/escudo-temuco.png';
+                            if (rivalName === 'Rangers') escudo = '/images/escudo-rangers.png';
+                            if (rivalName === 'Ñublense') escudo = 'https://dpmchile.cl/wp-content/uploads/2024/08/nublense.webp';
+                            setPartidosForm({
+                              ...partidosForm,
+                              proximo: {
+                                ...partidosForm.proximo,
+                                rival: rivalName,
+                                escudoRival: escudo
+                              }
+                            });
+                          }}
+                          className="text-[10px] font-bold bg-gray-100 hover:bg-emerald-100 hover:text-emerald-800 text-gray-700 px-2 py-1 rounded-lg transition"
+                        >
+                          {rivalName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Escudo del Rival (URL o Imagen)</label>
+                    <div className="flex gap-3 items-center">
+                      <div className="w-14 h-14 rounded-xl border border-gray-200 bg-gray-50 p-2 shrink-0 flex items-center justify-center">
+                        <img 
+                          src={partidosForm.proximo.escudoRival} 
+                          alt="Escudo Rival" 
+                          className="w-full h-full object-contain"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/images/escudo-concepcion.png'; }}
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.escudoRival}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, escudoRival: e.target.value }
+                        })}
+                        className="flex-1 border border-gray-300 rounded-xl p-3 text-xs font-mono text-gray-700 focus:ring-2 focus:ring-verde-dpm"
+                        placeholder="URL de la imagen o /images/escudo-..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Torneo / Campeonato</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.torneo}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, torneo: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Copa Chile Coca-Cola Sin Azúcar"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Estadio</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.estadio}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, estadio: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Estadio Bicentenario Chinquihue"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha del Partido</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.fecha}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, fecha: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Domingo 28 de Septiembre 2026"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Hora</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.hora}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, hora: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: 18:00 hrs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Enlace a Venta de Entradas</label>
+                    <input
+                      type="text"
+                      value={partidosForm.proximo.ticketLink}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        proximo: { ...partidosForm.proximo, ticketLink: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-mono text-gray-700"
+                      placeholder="/entradas o link externo de Ticketplus"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* TARJETA 2: ÚLTIMO MARCADOR & YOUTUBE TNT SPORTS */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5">
+                <div className="flex items-center gap-2 pb-3 border-b border-gray-100 text-red-600 font-black text-lg">
+                  <FaYoutube /> Marcador Oficial & Resumen YouTube TNT Sports
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Rival Último Partido</label>
+                      <input
+                        type="text"
+                        value={partidosForm.ultimo.rival}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, rival: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Magallanes"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha Último Partido</label>
+                      <input
+                        type="text"
+                        value={partidosForm.ultimo.fecha}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, fecha: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Sábado 21 de Septiembre 2026"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Marcador Goles DPM y Rival */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-gray-200 flex items-center justify-around gap-4 text-center">
+                    <div>
+                      <span className="block text-xs font-black text-emerald-800 uppercase mb-1">Goles DPM</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={partidosForm.ultimo.golesDpm}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, golesDpm: parseInt(e.target.value) || 0 }
+                        })}
+                        className="w-20 text-center font-black text-3xl text-emerald-600 bg-white border border-emerald-300 rounded-xl p-2 shadow-inner"
+                      />
+                    </div>
+                    <span className="text-2xl font-black text-gray-400 self-center mt-4">-</span>
+                    <div>
+                      <span className="block text-xs font-black text-gray-700 uppercase mb-1">Goles Rival</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={partidosForm.ultimo.golesRival}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, golesRival: parseInt(e.target.value) || 0 }
+                        })}
+                        className="w-20 text-center font-black text-3xl text-gray-800 bg-white border border-gray-300 rounded-xl p-2 shadow-inner"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Video de YouTube TNT Sports (ID o Enlace Completo)
+                    </label>
+                    <input
+                      type="text"
+                      value={partidosForm.ultimo.youtubeId}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        ultimo: { ...partidosForm.ultimo, youtubeId: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-mono text-gray-800"
+                      placeholder="Ej: ScQrhZAB-lg o https://www.youtube.com/watch?v=ScQrhZAB-lg"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      ℹ️ Tip para directivos: Puedes copiar y pegar directamente el enlace de YouTube que comparte TNT Sports Chile. El sistema detecta el video automáticamente.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Título del Video</label>
+                    <input
+                      type="text"
+                      value={partidosForm.ultimo.youtubeTitulo}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        ultimo: { ...partidosForm.ultimo, youtubeTitulo: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                      placeholder="Ej: Resumen DPM 2 - 0 Magallanes | TNT Sports"
+                    />
+                  </div>
+
+                  {/* Vista Previa del Video Embebido */}
+                  <div className="pt-2">
+                    <span className="block text-xs font-bold text-gray-500 uppercase mb-2">Vista Previa Inmediata:</span>
+                    <div className="relative pt-[56.25%] rounded-xl overflow-hidden bg-black border border-gray-300 shadow">
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${partidosForm.ultimo.youtubeId.replace('https://www.youtube.com/watch?v=', '').replace('https://youtu.be/', '').replace('https://www.youtube.com/embed/', '').split('&')[0]}`}
+                        title="Previsualización TNT Sports"
+                        className="absolute inset-0 w-full h-full border-0"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            {/* Botón inferior grande de Guardar */}
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={handleGuardarPartidos}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-4 rounded-2xl shadow-xl transition flex items-center gap-2 text-base cursor-pointer transform hover:-translate-y-0.5"
+              >
+                <FaCheckCircle /> Guardar Configuración de Partidos y Resúmenes
+              </button>
+            </div>
           </div>
         )}
 

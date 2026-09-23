@@ -26,12 +26,106 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Novedad, Jugador, Producto } from '../types';
 import api from '../api/axiosConfig';
+import { 
+  FaPlay, 
+  FaCalendarAlt, 
+  FaClock, 
+  FaMapMarkerAlt, 
+  FaTicketAlt, 
+  FaYoutube, 
+  FaTimes, 
+  FaFutbol 
+} from 'react-icons/fa';
+
+export interface PartidosConfig {
+  proximo: {
+    rival: string;
+    escudoRival: string;
+    torneo: string;
+    fecha: string;
+    hora: string;
+    estadio: string;
+    esLocal: boolean;
+    ticketLink: string;
+  };
+  ultimo: {
+    rival: string;
+    escudoRival: string;
+    torneo: string;
+    fecha: string;
+    golesDpm: number;
+    golesRival: number;
+    youtubeId: string;
+    youtubeTitulo: string;
+  };
+}
+
+const defaultPartidos: PartidosConfig = {
+  proximo: {
+    rival: 'Ñublense',
+    escudoRival: 'https://dpmchile.cl/wp-content/uploads/2024/08/nublense.webp',
+    torneo: 'Copa Chile Coca-Cola Sin Azúcar 2026',
+    fecha: 'Domingo 28 de Septiembre 2026',
+    hora: '18:00 hrs',
+    estadio: 'Estadio Bicentenario Chinquihue',
+    esLocal: true,
+    ticketLink: '/entradas'
+  },
+  ultimo: {
+    rival: 'Magallanes',
+    escudoRival: '/images/escudo-magallanes.png',
+    torneo: 'Copa Chile Coca-Cola Sin Azúcar 2026',
+    fecha: 'Sábado 21 de Septiembre 2026',
+    golesDpm: 2,
+    golesRival: 0,
+    youtubeId: 'ScQrhZAB-lg',
+    youtubeTitulo: 'Deportes Puerto Montt 2 - 0 Magallanes | Resumen Oficial TNT Sports'
+  }
+};
+
+const dpmTvVideos = [
+  {
+    id: 'ScQrhZAB-lg',
+    titulo: 'Deportes Puerto Montt 2 - 0 Magallanes | Resumen TNT Sports Chile',
+    categoria: 'Compacto TNT Sports',
+    duracion: '4:15'
+  },
+  {
+    id: 'URwFjERjb2Q',
+    titulo: 'Goles de Puerto Montt | Definiciones del Velero en Segunda División',
+    categoria: 'Goles DPM',
+    duracion: '3:40'
+  },
+  {
+    id: '6E-ssHcd2HU',
+    titulo: 'Conferencia de Prensa Oficial post partido en Chinquihue',
+    categoria: 'Entrevistas',
+    duracion: '8:22'
+  },
+  {
+    id: 'TOPtPzHscm8',
+    titulo: 'El Color y Aliento de la Hinchada Albiverde en el Chinquihue',
+    categoria: 'DPM TV',
+    duracion: '5:10'
+  }
+];
 
 export const Home = () => {
   const [novedades, setNovedades] = useState<Novedad[]>([]);
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [weather, setWeather] = useState<any>(null);
+  const [activeVideoModal, setActiveVideoModal] = useState<{ id: string; titulo: string } | null>(null);
+
+  const [partidos, setPartidos] = useState<PartidosConfig>(() => {
+    const saved = localStorage.getItem('dpm_partidos_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return defaultPartidos;
+  });
 
   useEffect(() => {
     // Petición paralela para optimizar tiempos de carga
@@ -96,6 +190,16 @@ export const Home = () => {
 
     fetchHomeData();
     fetchWeather();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'dpm_partidos_data' && e.newValue) {
+        try {
+          setPartidos(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   return (
@@ -169,6 +273,166 @@ export const Home = () => {
               Tienda Oficial
             </Link>
           </motion.div>
+        </div>
+      </section>
+
+      {/* SECCIÓN 1.5: FIXTURE & PARTIDOS - Banner Dual Oficial (Próximo Encuentro & Último Marcador) */}
+      <section className="relative z-20 -mt-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* TARJETA 1: PRÓXIMO ENCUENTRO */}
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-3xl border border-white/15 p-6 sm:p-7 shadow-2xl relative overflow-hidden flex flex-col justify-between group hover:border-emerald-500/40 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-4 border-b border-white/10 pb-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-wider border border-emerald-500/30">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Próximo Encuentro
+                </span>
+                <span className="text-xs font-semibold text-slate-300 line-clamp-1">{partidos.proximo.torneo}</span>
+              </div>
+
+              {/* Escudos y Duelo */}
+              <div className="flex items-center justify-between gap-4 my-4">
+                {/* Local: Puerto Montt */}
+                <div className="flex flex-col items-center text-center flex-1">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/5 p-2 border border-white/10 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                    <img 
+                      src="/images/logo-deportes-puertomontt.png" 
+                      alt="Deportes Puerto Montt" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <span className="mt-2 text-sm sm:text-base font-black text-white">D. Puerto Montt</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Local</span>
+                </div>
+
+                {/* VS Badge */}
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl sm:text-3xl font-black text-amarillo-dpm italic drop-shadow">VS</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Fecha Oficial</span>
+                </div>
+
+                {/* Visita: Rival */}
+                <div className="flex flex-col items-center text-center flex-1">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/5 p-2 border border-white/10 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                    <img 
+                      src={partidos.proximo.escudoRival} 
+                      alt={partidos.proximo.rival} 
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/escudo-concepcion.png';
+                      }}
+                    />
+                  </div>
+                  <span className="mt-2 text-sm sm:text-base font-black text-white truncate max-w-[130px]">{partidos.proximo.rival}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Visita</span>
+                </div>
+              </div>
+
+              {/* Detalles Fecha / Hora / Estadio */}
+              <div className="bg-slate-950/60 rounded-2xl p-3 border border-white/5 text-xs sm:text-sm text-slate-300 space-y-1.5 mt-4">
+                <div className="flex items-center gap-2">
+                  <FaCalendarAlt className="text-emerald-400 shrink-0" />
+                  <span className="font-semibold text-white">{partidos.proximo.fecha}</span>
+                  <span className="text-slate-500">•</span>
+                  <FaClock className="text-amarillo-dpm shrink-0" />
+                  <span className="font-semibold text-white">{partidos.proximo.hora}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-red-400 shrink-0" />
+                  <span>{partidos.proximo.estadio}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Botón Comprar Entradas */}
+            <div className="pt-5">
+              <Link 
+                to={partidos.proximo.ticketLink || '/entradas'}
+                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5"
+              >
+                <FaTicketAlt />
+                Comprar Entradas Online
+              </Link>
+            </div>
+          </div>
+
+          {/* TARJETA 2: ÚLTIMO MARCADOR */}
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-3xl border border-white/15 p-6 sm:p-7 shadow-2xl relative overflow-hidden flex flex-col justify-between group hover:border-red-500/40 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-4 border-b border-white/10 pb-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600/20 text-red-400 text-xs font-black uppercase tracking-wider border border-red-600/30">
+                  <FaFutbol /> Marcador Oficial
+                </span>
+                <span className="text-xs font-semibold text-slate-300 line-clamp-1">{partidos.ultimo.torneo}</span>
+              </div>
+
+              {/* Duelo de Escudos y Resultado */}
+              <div className="flex items-center justify-between gap-4 my-4">
+                {/* DPM */}
+                <div className="flex flex-col items-center text-center flex-1">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/5 p-2 border border-white/10 flex items-center justify-center shadow-lg">
+                    <img 
+                      src="/images/logo-deportes-puertomontt.png" 
+                      alt="Deportes Puerto Montt" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <span className="mt-2 text-sm sm:text-base font-black text-white">D. Puerto Montt</span>
+                </div>
+
+                {/* Score */}
+                <div className="flex items-center gap-2 sm:gap-3 bg-slate-950/80 px-4 py-2 rounded-2xl border border-white/10 shadow-inner">
+                  <span className="text-3xl sm:text-4xl font-black text-emerald-400">{partidos.ultimo.golesDpm}</span>
+                  <span className="text-xl font-bold text-slate-500">-</span>
+                  <span className="text-3xl sm:text-4xl font-black text-white">{partidos.ultimo.golesRival}</span>
+                </div>
+
+                {/* Rival */}
+                <div className="flex flex-col items-center text-center flex-1">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/5 p-2 border border-white/10 flex items-center justify-center shadow-lg">
+                    <img 
+                      src={partidos.ultimo.escudoRival} 
+                      alt={partidos.ultimo.rival} 
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/escudo-magallanes.png';
+                      }}
+                    />
+                  </div>
+                  <span className="mt-2 text-sm sm:text-base font-black text-white truncate max-w-[130px]">{partidos.ultimo.rival}</span>
+                </div>
+              </div>
+
+              {/* Detalles Último Encuentro */}
+              <div className="bg-slate-950/60 rounded-2xl p-3 border border-white/5 text-xs sm:text-sm text-slate-300 flex items-center justify-between mt-4">
+                <div className="flex items-center gap-2">
+                  <FaCalendarAlt className="text-red-400 shrink-0" />
+                  <span className="font-semibold text-white">{partidos.ultimo.fecha}</span>
+                </div>
+                <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Victoria Albiverde</span>
+              </div>
+            </div>
+
+            {/* Botón Ver Resumen TNT Sports */}
+            <div className="pt-5">
+              <button 
+                onClick={() => setActiveVideoModal({
+                  id: partidos.ultimo.youtubeId || 'ScQrhZAB-lg',
+                  titulo: partidos.ultimo.youtubeTitulo || `Resumen DPM vs ${partidos.ultimo.rival} - TNT Sports`
+                })}
+                className="w-full py-3.5 px-6 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+              >
+                <FaYoutube className="text-lg text-white" />
+                ▶ Ver Resumen TNT Sports
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -369,27 +633,58 @@ export const Home = () => {
               </div>
             </div>
 
-            {/* DPM TV / Contenido Audiovisual */}
-            <div className="rounded-3xl bg-slate-900 text-white p-8 sm:p-10 shadow-xl border border-white/10 space-y-4">
+            {/* DPM TV / Contenido Audiovisual y Highlights TNT Sports */}
+            <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 shadow-xl border border-white/10 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
-                  Canal Oficial
+                <span className="text-[11px] font-bold uppercase tracking-widest text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20 flex items-center gap-1.5">
+                  <FaYoutube className="text-red-500" />
+                  DPM TV & TNT Sports
                 </span>
-                <span className="text-xs text-gray-400">DPM Chile TV</span>
-              </div>
-              <h3 className="text-2xl font-black">DPM Chile TV & Resúmenes</h3>
-              <p className="text-xs sm:text-sm text-gray-300">
-                Revive los goles, entrevistas exclusivas al cuerpo técnico y la cobertura de cada fecha de la Liga de Ascenso.
-              </p>
-              <div className="pt-2">
                 <a 
                   href="https://www.youtube.com/@deportespuertomonttoficial" 
                   target="_blank" 
                   rel="noreferrer" 
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-colors inline-flex items-center gap-2"
+                  className="text-xs font-bold text-red-400 hover:underline inline-flex items-center gap-1"
                 >
-                  Ver Videos en YouTube &rarr;
+                  Canal Oficial &rarr;
                 </a>
+              </div>
+              <div>
+                <h3 className="text-2xl font-black">Resúmenes y Goles en Video</h3>
+                <p className="text-xs sm:text-sm text-gray-300 mt-1">
+                  Revive las mejores jugadas de TNT Sports Chile, entrevistas exclusivas y la fiesta en Chinquihue sin salir del sitio.
+                </p>
+              </div>
+
+              {/* Lista interactiva de videos oficiales con reproducción modal */}
+              <div className="space-y-2.5 pt-1">
+                {dpmTvVideos.map((vid) => (
+                  <div 
+                    key={vid.id}
+                    onClick={() => setActiveVideoModal({ id: vid.id, titulo: vid.titulo })}
+                    className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-950/70 hover:bg-slate-950 border border-white/5 hover:border-red-500/40 cursor-pointer transition-all group"
+                  >
+                    <div className="relative w-24 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-800 border border-white/10">
+                      <img 
+                        src={`https://img.youtube.com/vi/${vid.id}/hqdefault.jpg`} 
+                        alt={vid.titulo}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                        <div className="w-6 h-6 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                          <FaPlay className="text-[9px] ml-0.5" />
+                        </div>
+                      </div>
+                      <span className="absolute bottom-1 right-1 text-[8px] font-bold bg-black/80 px-1 rounded text-white">{vid.duracion}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-red-400 block">{vid.categoria}</span>
+                      <h4 className="text-xs font-bold text-white group-hover:text-red-300 transition-colors line-clamp-2 leading-snug">
+                        {vid.titulo}
+                      </h4>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -413,6 +708,56 @@ export const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* MODAL REPRODUCTOR DE YOUTUBE INTERACTIVO */}
+      {activeVideoModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setActiveVideoModal(null)}
+        >
+          <div 
+            className="bg-slate-900 border border-white/20 rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-slate-950">
+              <div className="flex items-center gap-2.5 min-w-0 pr-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse shrink-0" />
+                <h3 className="font-bold text-white text-sm sm:text-base truncate">{activeVideoModal.titulo}</h3>
+              </div>
+              <button 
+                onClick={() => setActiveVideoModal(null)} 
+                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition text-lg cursor-pointer"
+                title="Cerrar reproductor"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="relative pt-[56.25%] w-full bg-black">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${activeVideoModal.id}?autoplay=1&rel=0`}
+                title={activeVideoModal.titulo}
+                className="absolute inset-0 w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            <div className="p-4 bg-slate-950/90 flex items-center justify-between text-xs text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Transmisión Oficial en Video HD (1080p)
+              </span>
+              <a 
+                href={`https://www.youtube.com/watch?v=${activeVideoModal.id}`} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="text-red-400 hover:underline flex items-center gap-1 font-semibold"
+              >
+                Abrir en YouTube &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
