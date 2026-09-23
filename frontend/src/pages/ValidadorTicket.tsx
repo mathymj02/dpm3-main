@@ -179,7 +179,7 @@ export const ValidadorTicket: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Cargar métricas oficiales de aforo en vivo desde el Backend Spring Boot
+  // Cargar métricas oficiales de aforo en vivo desde el Backend Spring Boot o LocalStorage
   useEffect(() => {
     const cargarAforo = async () => {
       try {
@@ -187,23 +187,51 @@ export const ValidadorTicket: React.FC = () => {
         if (res.data && res.data.ingresados !== undefined) {
           setAforoActual(res.data.ingresados);
           setTotalValidadas(res.data.ingresados);
+          localStorage.setItem('dpm_aforo_local', JSON.stringify(res.data));
+          return;
         }
       } catch (err) {
         // En modo local mantiene el aforo base
+      }
+
+      const local = localStorage.getItem('dpm_aforo_local');
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          setAforoActual(parsed.ingresados || 0);
+          setTotalValidadas(parsed.ingresados || 0);
+        } catch {}
       }
     };
     cargarAforo();
   }, []);
 
+  const syncAforoStorage = (nuevoAforo: number) => {
+    setAforoActual(nuevoAforo);
+    setTotalValidadas(nuevoAforo);
+    const aforoObj = {
+      ingresados: nuevoAforo,
+      capacidadTotal: 10000,
+      porcentajeOcupacion: Number(((nuevoAforo / 10000) * 100).toFixed(1)),
+      recaudacionTotal: nuevoAforo * 12000,
+      entradasEmitidas: Math.max(5, nuevoAforo)
+    };
+    localStorage.setItem('dpm_aforo_local', JSON.stringify(aforoObj));
+    window.dispatchEvent(new CustomEvent('dpm_aforo_updated', { detail: aforoObj }));
+  };
+
   const handleReiniciarValidador = async () => {
     try {
       await api.post('/entradas/reiniciar');
     } catch (e) {}
+    localStorage.removeItem('dpm_aforo_local');
     setAforoActual(0);
     setTotalValidadas(0);
     setTotalRechazos(0);
     setHistorial([]);
     setResultadoActual({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada o carnet de socio (Operación en 0)...' });
+    const resetObj = { ingresados: 0, capacidadTotal: 10000, porcentajeOcupacion: 0, recaudacionTotal: 0, entradasEmitidas: 0 };
+    window.dispatchEvent(new CustomEvent('dpm_aforo_updated', { detail: resetObj }));
   };
 
   // Validar código contra la API de Spring Boot (con fallback local)
@@ -223,8 +251,8 @@ export const ValidadorTicket: React.FC = () => {
 
       if (data.valido) {
         emitirSonido(true);
-        setTotalValidadas(prev => prev + 1);
-        if (data.aforoActual) setAforoActual(data.aforoActual);
+        const nuevoAforo = data.aforoActual ?? (aforoActual + 1);
+        syncAforoStorage(nuevoAforo);
 
         const ticketExito: TicketRecord = {
           codigo: cleanCode,
@@ -378,8 +406,8 @@ export const ValidadorTicket: React.FC = () => {
           [cleanCode]: ticketActualizado
         }));
 
-        setTotalValidadas(prev => prev + 1);
-        setAforoActual(prev => prev + 1);
+        const nuevoAforo = aforoActual + 1;
+        syncAforoStorage(nuevoAforo);
         setResultadoActual({
           tipo: 'EXITO',
           mensaje: ticket.tipo === 'SOCIO' 

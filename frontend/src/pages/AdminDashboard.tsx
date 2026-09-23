@@ -256,7 +256,7 @@ export const AdminDashboard: React.FC = () => {
   const fetchAforoReal = async () => {
     try {
       const res = await api.get('/entradas/aforo');
-      if (res.data) {
+      if (res.data && res.data.ingresados !== undefined) {
         setAforoData({
           ingresados: res.data.ingresados ?? 0,
           capacidadTotal: res.data.capacidadTotal ?? 10000,
@@ -264,41 +264,78 @@ export const AdminDashboard: React.FC = () => {
           recaudacionTotal: res.data.recaudacionTotal ?? 0,
           entradasEmitidas: res.data.entradasEmitidas ?? 0
         });
+        localStorage.setItem('dpm_aforo_local', JSON.stringify(res.data));
+        return;
       }
     } catch {
-      // Modo offline
+      // Modo offline fallback
+    }
+
+    // Leer de localStorage compartido
+    const local = localStorage.getItem('dpm_aforo_local');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        setAforoData(prev => ({
+          ...prev,
+          ingresados: parsed.ingresados ?? prev.ingresados,
+          porcentajeOcupacion: parsed.porcentajeOcupacion ?? prev.porcentajeOcupacion,
+          recaudacionTotal: parsed.recaudacionTotal ?? prev.recaudacionTotal,
+          entradasEmitidas: parsed.entradasEmitidas ?? prev.entradasEmitidas
+        }));
+      } catch {}
     }
   };
 
   useEffect(() => {
     fetchAforoReal();
-    const timer = setInterval(fetchAforoReal, 3000);
-    return () => clearInterval(timer);
+    const timer = setInterval(fetchAforoReal, 2000);
+
+    const handleAforoEvent = (e: any) => {
+      if (e.detail) {
+        setAforoData(e.detail);
+      } else {
+        fetchAforoReal();
+      }
+    };
+
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === 'dpm_aforo_local') {
+        fetchAforoReal();
+      }
+    };
+
+    window.addEventListener('dpm_aforo_updated', handleAforoEvent);
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('dpm_aforo_updated', handleAforoEvent);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, []);
 
   const handleReiniciarAforo = async () => {
+    localStorage.removeItem('dpm_aforo_local');
+    const resetData = {
+      ingresados: 0,
+      capacidadTotal: 10000,
+      porcentajeOcupacion: 0.0,
+      recaudacionTotal: 0,
+      entradasEmitidas: 0
+    };
     try {
       const res = await api.post('/entradas/reiniciar');
       if (res.data) {
-        setAforoData({
-          ingresados: res.data.ingresados ?? 0,
-          capacidadTotal: res.data.capacidadTotal ?? 10000,
-          porcentajeOcupacion: res.data.porcentajeOcupacion ?? 0.0,
-          recaudacionTotal: res.data.recaudacionTotal ?? 0,
-          entradasEmitidas: res.data.entradasEmitidas ?? 0
-        });
+        setAforoData(res.data);
+      } else {
+        setAforoData(resetData);
       }
-      toastSuccess('¡Operación reiniciada! Aforo en 0 y entradas liberadas para la prueba.');
     } catch {
-      setAforoData({
-        ingresados: 0,
-        capacidadTotal: 10000,
-        porcentajeOcupacion: 0.0,
-        recaudacionTotal: 0,
-        entradasEmitidas: 0
-      });
-      toastSuccess('¡Aforo restablecido a 0 para demostración en vivo!');
+      setAforoData(resetData);
     }
+    window.dispatchEvent(new CustomEvent('dpm_aforo_updated', { detail: resetData }));
+    toastSuccess('¡Operación reiniciada! Aforo en 0 y entradas liberadas para la prueba.');
   };
 
   // =========================================================================
