@@ -15,7 +15,8 @@
 INSERT INTO usuario (email, nombre, password_hash, rol, created_at) VALUES
 ('admin@dpm.cl', 'Administrador DPM', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 1, CURRENT_TIMESTAMP),
 ('hincha@dpm.cl', 'Matías Hincha Albiverde', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 0, CURRENT_TIMESTAMP),
-('socio@dpm.cl', 'Socio Puerto Montt', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 0, CURRENT_TIMESTAMP);
+('socio@dpm.cl', 'Socio Puerto Montt', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 0, CURRENT_TIMESTAMP),
+('guardia@dpm.cl', 'Guardia Estadio Seguro', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 2, CURRENT_TIMESTAMP);
 
 -- ============================================================================
 -- 2. JUGADORES (PLANTEL OFICIAL CON FOTOS REALES)

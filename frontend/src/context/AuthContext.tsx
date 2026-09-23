@@ -78,6 +78,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('user', JSON.stringify(adminData));
         setUser(adminData);
         return;
+      } else if (emailLower === 'guardia@dpm.cl' || emailLower.startsWith('guardia')) {
+        const guardiaData: User = { 
+          nombre: 'Operador Torniquete Chinquihue', 
+          email: 'guardia@dpm.cl', 
+          rol: 'GUARDIA' 
+        };
+        localStorage.setItem('token', 'dpm-jwt-offline-guardia-token');
+        localStorage.setItem('user', JSON.stringify(guardiaData));
+        setUser(guardiaData);
+        return;
       } else if (emailLower.includes('@')) {
         const hinchaData: User = { 
           nombre: emailLower.split('@')[0].toUpperCase(), 
