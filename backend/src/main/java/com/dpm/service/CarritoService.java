@@ -38,6 +38,7 @@ import com.dpm.repository.CarritoItemRepository;
 import com.dpm.repository.CarritoRepository;
 import com.dpm.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -82,6 +83,7 @@ public class CarritoService {
     /**
      * Agrega un producto al carrito de un usuario, verificando stock y precios.
      */
+    @Transactional
     public CarritoResponse agregarItem(Usuario usuario, AgregarItemRequest request) {
         Carrito carrito = getOrCreateCarrito(usuario);
         
@@ -126,6 +128,7 @@ public class CarritoService {
     /**
      * Elimina un ítem específico del carrito activo del usuario.
      */
+    @Transactional
     public CarritoResponse eliminarItem(Usuario usuario, Long itemId) {
         Carrito carrito = getOrCreateCarrito(usuario);
         
@@ -143,13 +146,16 @@ public class CarritoService {
     /**
      * Retorna el estado actual del carrito para ser consumido por el frontend (DTO).
      */
+    @Transactional(readOnly = true)
     public CarritoResponse getCarrito(Usuario usuario) {
         return getCarritoResponse(getOrCreateCarrito(usuario));
     }
 
     /**
-     * Finaliza la compra de los ítems en el carrito, deduciendo stock.
+     * Finaliza la compra de los ítems en el carrito, deduciendo stock atómicamente.
+     * Si ocurre cualquier fallo o error en el proceso, se ejecuta ROLLBACK automático.
      */
+    @Transactional(rollbackFor = Exception.class)
     public void checkout(Usuario usuario) {
         Carrito carrito = getOrCreateCarrito(usuario);
         
