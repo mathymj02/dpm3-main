@@ -66,7 +66,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
     } catch (error: any) {
-      // Si el backend no está iniciado o hay modo demo offline:
+      // 1. Si el backend respondió con un código de error HTTP (400, 401, 403, 404, 500),
+      // significa que el servidor está ACTIVO y rechazó activamente las credenciales.
+      // En este caso NUNCA se debe realizar bypass con token falso.
+      if (error.response) {
+        throw error;
+      }
+
+      // 2. Si no hay conexión al servidor (backend apagado), validar si el entorno permite demo offline:
+      const isStrictProd = import.meta.env.PROD && !import.meta.env.VITE_ENABLE_DEMO_OFFLINE;
+      if (isStrictProd) {
+        throw new Error('No es posible conectar con los servidores oficiales de Deportes Puerto Montt.');
+      }
+
+      // 3. Fallback de demostración académica (solo cuando el backend local no está levantado)
       const emailLower = data.email.toLowerCase().trim();
       if (emailLower === 'admin@dpm.cl' || emailLower.startsWith('admin')) {
         const adminData: User = { 
@@ -113,7 +126,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
     } catch (error: any) {
-      // Fallback de registro
+      if (error.response) {
+        throw error;
+      }
+
+      const isStrictProd = import.meta.env.PROD && !import.meta.env.VITE_ENABLE_DEMO_OFFLINE;
+      if (isStrictProd) {
+        throw new Error('No es posible conectar con los servidores oficiales de Deportes Puerto Montt.');
+      }
+
+      // Fallback de registro solo para demostración académica offline
       const userData: User = { 
         nombre: data.nombre, 
         email: data.email, 
