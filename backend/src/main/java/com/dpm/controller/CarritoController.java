@@ -31,6 +31,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.dpm.dto.CheckoutResponse;
+
 @RestController
 @RequestMapping("/api/carrito")
 public class CarritoController {
@@ -69,11 +71,12 @@ public class CarritoController {
     }
 
     /**
-     * Finaliza la compra de los productos en el carrito activo, reduciendo el inventario.
+     * Finaliza la compra de los productos en el carrito activo, reduciendo el inventario,
+     * persistiendo la orden oficial y emitiendo los tickets reales de estadio en base de datos.
      */
     @PostMapping("/checkout")
-    public ResponseEntity<MessageResponse> checkout(@AuthenticationPrincipal Usuario usuario) {
-        carritoService.checkout(usuario);
-        return ResponseEntity.ok(new MessageResponse("Compra realizada con éxito"));
+    public ResponseEntity<CheckoutResponse> checkout(@AuthenticationPrincipal Usuario usuario) {
+        CheckoutResponse response = carritoService.checkout(usuario);
+        return ResponseEntity.ok(response);
     }
 }

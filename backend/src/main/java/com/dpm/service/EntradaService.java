@@ -91,80 +91,15 @@ public class EntradaService {
                     .build();
         }
 
-        // 4. Si es un ticket dinámico generado en frontend (DPM-SOCIO o DPM-TKT), se auto-registra en BD
-        if (codigoLimpio.startsWith("DPM-SOCIO-")) {
-            Entrada nuevoSocio = Entrada.builder()
-                    .codigo(codigoLimpio)
-                    .tipo("CARNET_SOCIO")
-                    .partido("Deportes Puerto Montt (Socio 2026)")
-                    .sector("Tribuna Chinquihue")
-                    .puertaAsignada("Puerta 1")
-                    .asiento("Butaca Socio")
-                    .titular("Socio Albiverde Registrado")
-                    .rut("18.492.301-8")
-                    .estado("INGRESADA")
-                    .precio(0)
-                    .fechaIngreso(LocalDateTime.now())
-                    .puertaIngreso(puerta)
-                    .build();
-            entradaRepository.save(nuevoSocio);
-
-            long aforoActual = entradaRepository.countByEstado("INGRESADA");
-            double porcentaje = (double) aforoActual / CAPACIDAD_CHINQUIHUE * 100.0;
-
-            return ValidarTicketResponse.builder()
-                    .valido(true)
-                    .estado("ACCESO_PERMITIDO")
-                    .mensaje("ACCESO LIBERADO • CREDENCIAL DE SOCIO VALIDADA")
-                    .titular(nuevoSocio.getTitular())
-                    .rut(nuevoSocio.getRut())
-                    .sector(nuevoSocio.getSector())
-                    .partido(nuevoSocio.getPartido())
-                    .horaIngreso(nuevoSocio.getFechaIngreso().format(formatter))
-                    .puertaIngreso(puerta)
-                    .aforoActual(aforoActual)
-                    .aforoMaximo(CAPACIDAD_CHINQUIHUE)
-                    .porcentajeAforo(Math.round(porcentaje * 10.0) / 10.0)
-                    .build();
-        }
-
-        if (codigoLimpio.startsWith("DPM-TKT-")) {
-            Entrada nuevoTicket = Entrada.builder()
-                    .codigo(codigoLimpio)
-                    .tipo("TICKET_PARTIDO")
-                    .partido("Deportes Puerto Montt vs Rival Oficial")
-                    .sector("Galería Sur")
-                    .puertaAsignada(puerta)
-                    .asiento("Sector B")
-                    .titular("Hincha Oficial Albiverde")
-                    .rut("19.234.567-8")
-                    .estado("INGRESADA")
-                    .precio(7000)
-                    .fechaIngreso(LocalDateTime.now())
-                    .puertaIngreso(puerta)
-                    .build();
-            entradaRepository.save(nuevoTicket);
-
-            long aforoActual = entradaRepository.countByEstado("INGRESADA");
-            double porcentaje = (double) aforoActual / CAPACIDAD_CHINQUIHUE * 100.0;
-
-            return ValidarTicketResponse.builder()
-                    .valido(true)
-                    .estado("ACCESO_PERMITIDO")
-                    .mensaje("ENTRADA VÁLIDA • ACCESO REGISTRADO EN SERVIDOR")
-                    .titular(nuevoTicket.getTitular())
-                    .rut(nuevoTicket.getRut())
-                    .sector(nuevoTicket.getSector())
-                    .partido(nuevoTicket.getPartido())
-                    .horaIngreso(nuevoTicket.getFechaIngreso().format(formatter))
-                    .puertaIngreso(puerta)
-                    .aforoActual(aforoActual)
-                    .aforoMaximo(CAPACIDAD_CHINQUIHUE)
-                    .porcentajeAforo(Math.round(porcentaje * 10.0) / 10.0)
-                    .build();
-        }
-
-        return construirRespuestaRechazo("CODIGO_INEXISTENTE", "El código escaneado no pertenece a ninguna entrada o carnet oficial.", "Desconocido", "---", "---", "---");
+        // 4. Si el código no existe en la base de datos, rechazar acceso (Antifraude estricto)
+        return construirRespuestaRechazo(
+                "CODIGO_INEXISTENTE",
+                "El código escaneado no pertenece a ninguna entrada o carnet oficial registrado en el club.",
+                "Desconocido",
+                "---",
+                "---",
+                "---"
+        );
     }
 
     public AforoResponse obtenerAforo() {

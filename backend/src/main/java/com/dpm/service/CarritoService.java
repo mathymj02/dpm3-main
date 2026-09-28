@@ -5,61 +5,60 @@
  * ============================================================================
  * 
  * ¿QUÉ HACE ESTE ARCHIVO?
- * Maneja el ciclo de vida del carrito de compras (e-commerce). Controla la
- * creación de carritos, adición/eliminación de productos y el proceso final de checkout.
+ * Contiene la lógica del carrito de compras:
+ * - Creación y obtención del carrito activo del usuario.
+ * - Adición de productos con validación de inventario.
+ * - Eliminación de productos.
+ * - Checkout atómico: Deducción de inventario, generación de Orden oficial,
+ *   emisión persistente de Entradas/Tickets en BD y cierre del carrito.
  * 
  * ¿POR QUÉ ESTA TECNOLOGÍA?
- * El patrón de diseño de Servicios (Service Layer) permite centralizar reglas de negocio
- * complejas, como la verificación de stock y el cálculo de subtotales, manteniendo
- * limpios a los controladores REST.
- * 
- * DECISIONES DE ARQUITECTURA:
- * - Carrito "Activo": Solo se mantiene un carrito en estado ACTIVO por usuario a la vez.
- * - Snapshot de precio: Se guarda el precio en CarritoItem al momento de agregar. Esto 
- *   sigue el estándar de e-commerce de proteger la compra contra cambios de precio en el futuro.
- * - Doble validación de stock: Se valida al momento de agregar al carrito y nuevamente
- *   justo antes del checkout para evitar condiciones de carrera si dos usuarios compran 
- *   el mismo producto simultáneamente.
+ * Spring @Transactional garantiza consistencia ACID completa: si ocurre una
+ * falla durante la deducción de inventario o generación de orden, se realiza un
+ * rollback total previniendo inconsistencias en inventario o transacciones bancarias.
  * ============================================================================
  */
 package com.dpm.service;
 
-import com.dpm.dto.AgregarItemRequest;
-import com.dpm.dto.CarritoItemResponse;
-import com.dpm.dto.CarritoResponse;
+import com.dpm.dto.*;
 import com.dpm.exception.BadRequestException;
 import com.dpm.exception.ResourceNotFoundException;
-import com.dpm.model.Carrito;
-import com.dpm.model.CarritoItem;
-import com.dpm.model.Producto;
-import com.dpm.model.Usuario;
+import com.dpm.model.*;
 import com.dpm.model.enums.EstadoCarrito;
-import com.dpm.repository.CarritoItemRepository;
-import com.dpm.repository.CarritoRepository;
-import com.dpm.repository.ProductoRepository;
+import com.dpm.model.enums.EstadoOrden;
+import com.dpm.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * @Service marca esta clase como el componente encargado de la lógica comercial del carrito.
- */
 @Service
 public class CarritoService {
 
     private final CarritoRepository carritoRepository;
     private final CarritoItemRepository carritoItemRepository;
     private final ProductoRepository productoRepository;
+    private final OrdenRepository ordenRepository;
+    private final OrdenItemRepository ordenItemRepository;
+    private final EntradaRepository entradaRepository;
 
     public CarritoService(CarritoRepository carritoRepository,
                           CarritoItemRepository carritoItemRepository,
-                          ProductoRepository productoRepository) {
+                          ProductoRepository productoRepository,
+                          OrdenRepository ordenRepository,
+                          OrdenItemRepository ordenItemRepository,
+                          EntradaRepository entradaRepository) {
         this.carritoRepository = carritoRepository;
         this.carritoItemRepository = carritoItemRepository;
         this.productoRepository = productoRepository;
+        this.ordenRepository = ordenRepository;
+        this.ordenItemRepository = ordenItemRepository;
+        this.entradaRepository = entradaRepository;
     }
 
     /**
@@ -87,42 +86,41 @@ public class CarritoService {
     public CarritoResponse agregarItem(Usuario usuario, AgregarItemRequest request) {
         Carrito carrito = getOrCreateCarrito(usuario);
         
-        // Obtener la entidad Producto desde la BD
         Producto producto = productoRepository.findById(request.getProductoId())
-                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + request.getProductoId()));
 
-        // Validar que el producto se pueda vender
-        if (!producto.getActivo() || producto.getStock() < request.getCantidad()) {
-            throw new BadRequestException("Producto no disponible o stock insuficiente.");
+        if (!producto.getActivo()) {
+            throw new BadRequestException("El producto seleccionado ya no está disponible para la venta.");
         }
 
-        // Buscar si el ítem ya existe en el carrito
-        Optional<CarritoItem> existingItem = carrito.getItems().stream()
+        if (producto.getStock() < request.getCantidad()) {
+            throw new BadRequestException("Stock insuficiente. Disponibles: " + producto.getStock());
+        }
+
+        Optional<CarritoItem> itemExistente = carrito.getItems().stream()
                 .filter(item -> item.getProducto().getId().equals(producto.getId()))
                 .findFirst();
 
-        if (existingItem.isPresent()) {
-            // Si ya existe, incrementar la cantidad comprobando el stock
-            CarritoItem item = existingItem.get();
+        if (itemExistente.isPresent()) {
+            CarritoItem item = itemExistente.get();
             int nuevaCantidad = item.getCantidad() + request.getCantidad();
-            if (nuevaCantidad > producto.getStock()) {
-                throw new BadRequestException("Stock insuficiente.");
+            if (producto.getStock() < nuevaCantidad) {
+                throw new BadRequestException("No puedes añadir más unidades de las disponibles en inventario (" + producto.getStock() + ")");
             }
             item.setCantidad(nuevaCantidad);
             carritoItemRepository.save(item);
         } else {
-            // Si es nuevo, crear una instancia de CarritoItem (snapshot de precio incluido)
             CarritoItem nuevoItem = CarritoItem.builder()
                     .carrito(carrito)
                     .producto(producto)
                     .cantidad(request.getCantidad())
                     .precioUnitario(producto.getPrecio())
                     .build();
-            carrito.getItems().add(nuevoItem);
             carritoItemRepository.save(nuevoItem);
+            carrito.getItems().add(nuevoItem);
         }
 
-        return getCarritoResponse(carritoRepository.save(carrito));
+        return getCarritoResponse(carrito);
     }
 
     /**
@@ -132,15 +130,17 @@ public class CarritoService {
     public CarritoResponse eliminarItem(Usuario usuario, Long itemId) {
         Carrito carrito = getOrCreateCarrito(usuario);
         
-        CarritoItem itemToRemove = carrito.getItems().stream()
-                .filter(item -> item.getId().equals(itemId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Item no encontrado en el carrito."));
+        CarritoItem item = carritoItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("El ítem no fue encontrado en el carrito."));
 
-        carrito.getItems().remove(itemToRemove);
-        carritoItemRepository.delete(itemToRemove);
+        if (!item.getCarrito().getId().equals(carrito.getId())) {
+            throw new BadRequestException("No tienes permisos para modificar este ítem.");
+        }
 
-        return getCarritoResponse(carritoRepository.save(carrito));
+        carrito.getItems().remove(item);
+        carritoItemRepository.delete(item);
+
+        return getCarritoResponse(carrito);
     }
 
     /**
@@ -152,11 +152,12 @@ public class CarritoService {
     }
 
     /**
-     * Finaliza la compra de los ítems en el carrito, deduciendo stock atómicamente.
+     * Finaliza la compra de los ítems en el carrito, deduciendo stock atómicamente,
+     * persistiendo la Orden comercial y generando los e-tickets correspondientes en BD.
      * Si ocurre cualquier fallo o error en el proceso, se ejecuta ROLLBACK automático.
      */
     @Transactional(rollbackFor = Exception.class)
-    public void checkout(Usuario usuario) {
+    public CheckoutResponse checkout(Usuario usuario) {
         Carrito carrito = getOrCreateCarrito(usuario);
         
         if (carrito.getItems().isEmpty()) {
@@ -174,9 +175,107 @@ public class CarritoService {
             productoRepository.save(producto);
         }
 
+        // 1. Generar número de orden único y entidad Orden
+        int year = LocalDateTime.now().getYear();
+        String codigoSufijo = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String numeroOrden = "ORD-" + year + "-" + codigoSufijo;
+        String trackingCourier = "CHX-" + (100000 + (int)(Math.random() * 900000)) + "-CL";
+
+        int totalOrden = carrito.getItems().stream()
+                .mapToInt(item -> item.getPrecioUnitario() * item.getCantidad())
+                .sum();
+
+        Orden orden = Orden.builder()
+                .numeroOrden(numeroOrden)
+                .usuario(usuario)
+                .total(totalOrden)
+                .estado(EstadoOrden.PAGADA)
+                .direccionEnvio("Av. Diego Portales 1240, Puerto Montt, Región de Los Lagos")
+                .numeroSeguimiento(trackingCourier)
+                .metodoEntrega("Chilexpress Courier Express")
+                .build();
+
+        Orden ordenGuardada = ordenRepository.save(orden);
+
+        // 2. Persistir los ítems de la orden y generar tickets oficiales si corresponden
+        List<OrdenItemResponse> ordenItemResponses = new ArrayList<>();
+        List<EntradaResponse> ticketsGenerados = new ArrayList<>();
+
+        for (CarritoItem item : carrito.getItems()) {
+            Producto prod = item.getProducto();
+            int subtotal = item.getPrecioUnitario() * item.getCantidad();
+
+            OrdenItem ordenItem = OrdenItem.builder()
+                    .orden(ordenGuardada)
+                    .producto(prod)
+                    .productoNombre(prod.getNombre())
+                    .cantidad(item.getCantidad())
+                    .precioUnitario(item.getPrecioUnitario())
+                    .subtotal(subtotal)
+                    .build();
+            ordenItemRepository.save(ordenItem);
+
+            ordenItemResponses.add(OrdenItemResponse.builder()
+                    .id(ordenItem.getId())
+                    .productoNombre(prod.getNombre())
+                    .cantidad(item.getCantidad())
+                    .precioUnitario(item.getPrecioUnitario())
+                    .subtotal(subtotal)
+                    .build());
+
+            // Si el ítem es una entrada o ticket para el Chinquihue, se emite formalmente en BD
+            boolean esTicket = (prod.getCategoria() != null && prod.getCategoria().equalsIgnoreCase("Tickets"))
+                    || prod.getNombre().toLowerCase().contains("entrada");
+
+            if (esTicket) {
+                for (int i = 0; i < item.getCantidad(); i++) {
+                    String codigoTicket = "DPM-TKT-" + year + "-" + String.format("%04d", (int)(Math.random() * 9000 + 1000)) + "-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
+                    Entrada entrada = Entrada.builder()
+                            .codigo(codigoTicket)
+                            .tipo("TICKET_PARTIDO")
+                            .partido("Deportes Puerto Montt vs Deportes Temuco")
+                            .sector("Galería Sur - Los Hijos del Temporal")
+                            .puertaAsignada("Puerta 2 - Acceso Principal")
+                            .asiento("Sector B - Asiento " + (10 + (int)(Math.random() * 80)))
+                            .titular(usuario.getNombre() != null ? usuario.getNombre() : "Hincha Albiverde")
+                            .rut("18.492.301-8")
+                            .estado("VALIDA")
+                            .precio(item.getPrecioUnitario())
+                            .build();
+
+                    Entrada entradaGuardada = entradaRepository.save(entrada);
+
+                    ticketsGenerados.add(EntradaResponse.builder()
+                            .id(entradaGuardada.getId())
+                            .codigo(entradaGuardada.getCodigo())
+                            .tipo(entradaGuardada.getTipo())
+                            .partido(entradaGuardada.getPartido())
+                            .sector(entradaGuardada.getSector())
+                            .puertaAsignada(entradaGuardada.getPuertaAsignada())
+                            .asiento(entradaGuardada.getAsiento())
+                            .titular(entradaGuardada.getTitular())
+                            .rut(entradaGuardada.getRut())
+                            .precio(entradaGuardada.getPrecio())
+                            .build());
+                }
+            }
+        }
+
         // Cerrar el carrito marcándolo como COMPLETADO
         carrito.setEstado(EstadoCarrito.COMPLETADO);
         carritoRepository.save(carrito);
+
+        return CheckoutResponse.builder()
+                .message("Compra realizada con éxito")
+                .numeroOrden(ordenGuardada.getNumeroOrden())
+                .total(ordenGuardada.getTotal())
+                .estado(ordenGuardada.getEstado().name())
+                .direccionEnvio(ordenGuardada.getDireccionEnvio())
+                .numeroSeguimiento(ordenGuardada.getNumeroSeguimiento())
+                .metodoEntrega(ordenGuardada.getMetodoEntrega())
+                .items(ordenItemResponses)
+                .tickets(ticketsGenerados)
+                .build();
     }
 
     /**
@@ -199,16 +298,15 @@ public class CarritoService {
     }
 
     /**
-     * Utilidad para mapear la entidad CarritoItem hacia su DTO calculando el subtotal de ese ítem.
+     * Convierte la entidad de BD CarritoItem a su versión ligera de transferencia (DTO).
      */
     private CarritoItemResponse mapToItemResponse(CarritoItem item) {
-        int subtotal = item.getCantidad() * item.getPrecioUnitario();
         return CarritoItemResponse.builder()
                 .id(item.getId())
                 .productoNombre(item.getProducto().getNombre())
-                .cantidad(item.getCantidad())
                 .precioUnitario(item.getPrecioUnitario())
-                .subtotal(subtotal)
+                .cantidad(item.getCantidad())
+                .subtotal(item.getPrecioUnitario() * item.getCantidad())
                 .build();
     }
 }

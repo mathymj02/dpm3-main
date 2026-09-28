@@ -72,9 +72,12 @@ INSERT INTO novedad (titulo, contenido, imagen_url, fecha_publicacion, autor_id)
 -- ============================================================================
 -- 6. ENTRADAS OFICIALES Y CARNETS DE SOCIO (SISTEMA DE TORNIQUETES)
 -- ============================================================================
-INSERT INTO entrada (codigo, tipo, partido, sector, puerta_asignada, asiento, titular, rut, estado, precio, created_at) VALUES
-('DPM-TKT-2026-8942-A8F1', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Galería Sur - Los Hijos del Temporal', 'Puerta 2 - Acceso Principal', 'Sector B - Asiento 42', 'Matías Hincha Albiverde', '18.492.301-8', 'VALIDA', 7000, CURRENT_TIMESTAMP),
-('DPM-TKT-2026-1102-B3C9', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Provincial Osorno', 'Tribuna Chinquihue Techada', 'Puerta 1 - Acceso Tribuna', 'Sector A - Asiento 15', 'Gonzalo Soto Morales', '15.821.402-3', 'VALIDA', 14000, CURRENT_TIMESTAMP),
-('DPM-SOCIO-2026-0842', 'CARNET_SOCIO', 'Deportes Puerto Montt (Socio Al Día 2026)', 'Tribuna Chinquihue', 'Puerta 1 - Acceso Tribuna', 'Butaca Socio Libre', 'Matías Mena Socio', '18.492.301-8', 'VALIDA', 0, CURRENT_TIMESTAMP),
-('DPM-TKT-2026-USADO-77', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Galería Sur', 'Puerta 2', 'Asiento 12', 'Esteban Paredes', '13.491.200-1', 'VALIDA', 7000, CURRENT_TIMESTAMP),
-('DPM-SOCIO-2026-MOROSO', 'CARNET_SOCIO', 'Deportes Puerto Montt (Socio 2026)', 'Galería Sur', 'Puerta 2', 'General', 'Juan Perez Moroso', '11.222.333-4', 'MOROSO', 0, CURRENT_TIMESTAMP);
+INSERT INTO entrada (codigo, tipo, partido, sector, puerta_asignada, asiento, titular, rut, estado, precio, created_at, fecha_ingreso, puerta_ingreso) VALUES
+('DPM-TKT-2026-8942-A8F1', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Galería Sur - Los Hijos del Temporal', 'Puerta 2 - Acceso Principal', 'Sector B - Asiento 42', 'Matías Hincha Albiverde', '18.492.301-8', 'VALIDA', 7000, CURRENT_TIMESTAMP, NULL, NULL),
+('DPM-TKT-DEMO-VALID', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Galería Sur', 'Puerta 2 - Galería Sur', 'Sector B - Asiento 10', 'Juan Ignacio Pérez', '18.943.201-4', 'VALIDA', 7000, CURRENT_TIMESTAMP, NULL, NULL),
+('DPM-TKT-DEMO-USADA', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Tribuna Chinquihue', 'Puerta 1 - Tribuna Principal', 'Sector A - Asiento 05', 'Rodrigo Gómez Muñoz', '15.342.119-K', 'INGRESADA', 14000, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Puerta 1'),
+('DPM-SOCIO-2026-0842', 'CARNET_SOCIO', 'Deportes Puerto Montt (Socio Al Día 2026)', 'Tribuna Chinquihue (Sector Socios)', 'Puerta 1 - Exclusiva Socios', 'Butaca Socio Libre', 'Matías Hincha Albiverde', '18.492.301-8', 'VALIDA', 0, CURRENT_TIMESTAMP, NULL, NULL),
+('DPM-SOCIO-MOROSO', 'CARNET_SOCIO', 'Deportes Puerto Montt (Socio 2026)', 'Galería Sur', 'Puerta 2', 'General', 'Gonzalo Silva Vera', '14.281.902-3', 'MOROSO', 0, CURRENT_TIMESTAMP, NULL, NULL),
+('DPM-TKT-2026-1102-B3C9', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Provincial Osorno', 'Tribuna Chinquihue Techada', 'Puerta 1 - Acceso Tribuna', 'Sector A - Asiento 15', 'Gonzalo Soto Morales', '15.821.402-3', 'VALIDA', 14000, CURRENT_TIMESTAMP, NULL, NULL),
+('DPM-TKT-2026-USADO-77', 'TICKET_PARTIDO', 'Deportes Puerto Montt vs Deportes Temuco', 'Galería Sur', 'Puerta 2', 'Asiento 12', 'Esteban Paredes', '13.491.200-1', 'INGRESADA', 7000, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Puerta 2');
+
