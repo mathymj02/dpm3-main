@@ -122,7 +122,14 @@ export const Tienda = () => {
           <motion.div key={producto.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
             <Card className="flex flex-col h-full">
               <div className="p-4 bg-white flex justify-center h-48 items-center border-b border-gray-100">
-                <img src={producto.imagenUrl} alt={producto.nombre} className="max-h-full object-contain" />
+                <img 
+                  src={producto.imagenUrl} 
+                  alt={producto.nombre} 
+                  className="max-h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/polera.jpg';
+                  }}
+                />
               </div>
               <div className="p-4 flex flex-col flex-grow">
                 <span className="text-xs text-gray-500 mb-1">{producto.categoria}</span>

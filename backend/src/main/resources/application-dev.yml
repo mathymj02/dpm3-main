@@ -1,0 +1,37 @@
+# ============================================================================
+# Archivo: application-dev.yml
+# Proyecto: DPM Pro - Club Deportes Puerto Montt
+# ============================================================================
+# PERFIL DE DESARROLLO (DEV)
+# Entorno local para pruebas rápidas y desarrollo de funcionalidades.
+# Base de datos en memoria H2 con carga automática de datos semilla (data.sql).
+# ============================================================================
+spring:
+  datasource:
+    url: jdbc:h2:mem:dpmdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+jwt:
+  secret: ${JWT_SECRET:8a9b8c7d6e5f4g3h2i1j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6A7B8C9D0E1F}
+  expiration: 86400000 
+
+server:
+  port: 8080
+
+cors:
+  allowed-origins: http://localhost:5173

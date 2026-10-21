@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { toastError } from '../components/ui/Toast';
 import { 
   FaQrcode, 
   FaCheckCircle, 
@@ -112,6 +113,69 @@ export const ValidadorTicket: React.FC = () => {
   });
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [camaraActiva, setCamaraActiva] = useState(false);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const toggleCamara = async () => {
+    if (camaraActiva) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+      setCamaraActiva(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+        });
+        streamRef.current = stream;
+        setCamaraActiva(true);
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        }, 100);
+      } catch {
+        toastError('No se pudo acceder a la cámara. Puedes ingresar el código manualmente o usar los botones de prueba.');
+      }
+    }
+  };
+
+  // Escaneo nativo con BarcodeDetector si está disponible en el navegador
+  useEffect(() => {
+    if (!camaraActiva || !videoRef.current) return;
+
+    let intervalId: any = null;
+    const BarcodeDetectorClass = (window as any).BarcodeDetector;
+
+    if (BarcodeDetectorClass) {
+      const detector = new BarcodeDetectorClass({ formats: ['qr_code'] });
+      intervalId = setInterval(async () => {
+        if (videoRef.current && videoRef.current.readyState >= 2) {
+          try {
+            const barcodes = await detector.detect(videoRef.current);
+            if (barcodes.length > 0 && barcodes[0].rawValue) {
+              procesarCodigo(barcodes[0].rawValue);
+            }
+          } catch {}
+        }
+      }, 500);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [camaraActiva]);
+
+  // Limpieza de cámara al desmontar
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
 
   // Reproducir efectos de sonido audibles de torniquete con Web Audio API
   const emitirSonido = (esExito: boolean) => {
@@ -179,7 +243,7 @@ export const ValidadorTicket: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Cargar métricas oficiales de aforo en vivo desde el Backend Spring Boot
+  // Cargar métricas oficiales de aforo en vivo desde el Backend Spring Boot o LocalStorage
   useEffect(() => {
     const cargarAforo = async () => {
       try {
@@ -187,23 +251,51 @@ export const ValidadorTicket: React.FC = () => {
         if (res.data && res.data.ingresados !== undefined) {
           setAforoActual(res.data.ingresados);
           setTotalValidadas(res.data.ingresados);
+          localStorage.setItem('dpm_aforo_local', JSON.stringify(res.data));
+          return;
         }
       } catch (err) {
         // En modo local mantiene el aforo base
+      }
+
+      const local = localStorage.getItem('dpm_aforo_local');
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          setAforoActual(parsed.ingresados || 0);
+          setTotalValidadas(parsed.ingresados || 0);
+        } catch {}
       }
     };
     cargarAforo();
   }, []);
 
+  const syncAforoStorage = (nuevoAforo: number) => {
+    setAforoActual(nuevoAforo);
+    setTotalValidadas(nuevoAforo);
+    const aforoObj = {
+      ingresados: nuevoAforo,
+      capacidadTotal: 10000,
+      porcentajeOcupacion: Number(((nuevoAforo / 10000) * 100).toFixed(1)),
+      recaudacionTotal: nuevoAforo * 12000,
+      entradasEmitidas: Math.max(5, nuevoAforo)
+    };
+    localStorage.setItem('dpm_aforo_local', JSON.stringify(aforoObj));
+    window.dispatchEvent(new CustomEvent('dpm_aforo_updated', { detail: aforoObj }));
+  };
+
   const handleReiniciarValidador = async () => {
     try {
       await api.post('/entradas/reiniciar');
     } catch (e) {}
+    localStorage.removeItem('dpm_aforo_local');
     setAforoActual(0);
     setTotalValidadas(0);
     setTotalRechazos(0);
     setHistorial([]);
     setResultadoActual({ tipo: 'IDLE', mensaje: 'Listo para escanear entrada o carnet de socio (Operación en 0)...' });
+    const resetObj = { ingresados: 0, capacidadTotal: 10000, porcentajeOcupacion: 0, recaudacionTotal: 0, entradasEmitidas: 0 };
+    window.dispatchEvent(new CustomEvent('dpm_aforo_updated', { detail: resetObj }));
   };
 
   // Validar código contra la API de Spring Boot (con fallback local)
@@ -223,8 +315,8 @@ export const ValidadorTicket: React.FC = () => {
 
       if (data.valido) {
         emitirSonido(true);
-        setTotalValidadas(prev => prev + 1);
-        if (data.aforoActual) setAforoActual(data.aforoActual);
+        const nuevoAforo = data.aforoActual ?? (aforoActual + 1);
+        syncAforoStorage(nuevoAforo);
 
         const ticketExito: TicketRecord = {
           codigo: cleanCode,
@@ -378,8 +470,8 @@ export const ValidadorTicket: React.FC = () => {
           [cleanCode]: ticketActualizado
         }));
 
-        setTotalValidadas(prev => prev + 1);
-        setAforoActual(prev => prev + 1);
+        const nuevoAforo = aforoActual + 1;
+        syncAforoStorage(nuevoAforo);
         setResultadoActual({
           tipo: 'EXITO',
           mensaje: ticket.tipo === 'SOCIO' 
@@ -533,12 +625,26 @@ export const ValidadorTicket: React.FC = () => {
                 </span>
               </div>
 
-              {/* Visor simulado de cámara con mira láser animada */}
+              {/* Visor de cámara con mira láser y toggle de cámara */}
               <div className="relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-slate-700 flex items-center justify-center group">
-                <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/80"></div>
+                {camaraActiva ? (
+                  <video 
+                    ref={videoRef} 
+                    autoPlay 
+                    playsInline 
+                    muted 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/80 flex flex-col items-center justify-center text-center p-4">
+                    <p className="text-xs text-gray-400 max-w-xs">
+                      Visor láser preparado. Puedes usar la cámara integrada de tu equipo o los botones de prueba rápida de 1 clic abajo.
+                    </p>
+                  </div>
+                )}
                 
                 {/* Cuadro de enfoque de escáner */}
-                <div className="relative w-48 h-48 border-2 border-emerald-500/60 rounded-xl flex items-center justify-center">
+                <div className="relative w-48 h-48 border-2 border-emerald-500/60 rounded-xl flex items-center justify-center pointer-events-none">
                   <div className="w-full h-0.5 bg-red-500 shadow-[0_0_12px_#ef4444] animate-pulse"></div>
                   <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-emerald-400"></div>
                   <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-emerald-400"></div>
@@ -546,8 +652,21 @@ export const ValidadorTicket: React.FC = () => {
                   <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-emerald-400"></div>
                 </div>
 
-                <div className="absolute bottom-3 left-4 right-4 text-center text-xs text-gray-400 bg-black/60 py-1 rounded backdrop-blur">
-                  Acerque el código QR del hincha o ingrese el código con pistola USB
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs bg-black/75 py-1.5 px-3 rounded-lg backdrop-blur border border-white/10">
+                  <span className="text-gray-300 text-[11px] truncate">
+                    {camaraActiva ? '📷 Cámara en Vivo Transmitiendo' : 'Lector Óptico / Entrada USB'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleCamara}
+                    className={`px-3 py-1 rounded-md text-[11px] font-black transition cursor-pointer shadow-md ${
+                      camaraActiva 
+                        ? 'bg-rose-600 hover:bg-rose-700 text-white' 
+                        : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                    }`}
+                  >
+                    {camaraActiva ? 'Apagar Cámara' : 'Encender Cámara'}
+                  </button>
                 </div>
               </div>
 

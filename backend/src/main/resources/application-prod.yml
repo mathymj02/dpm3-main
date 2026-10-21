@@ -1,0 +1,36 @@
+# ============================================================================
+# Archivo: application-prod.yml
+# Proyecto: DPM Pro - Club Deportes Puerto Montt
+# ============================================================================
+# PERFIL DE PRODUCCIÓN (PROD)
+# Entorno oficial de producción para Club Deportes Puerto Montt.
+# Motor de base de datos relacional PostgreSQL con variables inyectadas.
+# ============================================================================
+spring:
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: false
+  sql:
+    init:
+      mode: never
+  h2:
+    console:
+      enabled: false
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+server:
+  port: ${PORT:8080}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://dpm.cl}

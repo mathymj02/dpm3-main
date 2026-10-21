@@ -96,9 +96,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/novedades/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posiciones/**").permitAll()
-                        // Endpoints del sistema de torniquetes y aforo de estadio
-                        .requestMatchers("/api/entradas/**").permitAll()
-                        // Consola de base de datos H2, pública para depuración
+                        // Endpoints de aforo público (lectura de asistencia en vivo en Chinquihue)
+                        .requestMatchers(HttpMethod.GET, "/api/entradas/aforo").permitAll()
+                        // Validación de entradas en torniquetes: reservado exclusivamente a personal acreditado (GUARDIA o ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/entradas/validar").hasAnyRole("GUARDIA", "ADMIN")
+                        // Reinicio y auditoría de aforo del estadio: reservado estrictamente a la directiva (ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/entradas/reiniciar").hasRole("ADMIN")
+                        .requestMatchers("/api/entradas/admin/**").hasRole("ADMIN")
+                        // Consola de base de datos H2, pública para depuración en desarrollo
                         .requestMatchers("/h2-console/**").permitAll()
                         // Cualquier otra petición (POST, PUT, DELETE) requiere estar autenticado
                         .anyRequest().authenticated()

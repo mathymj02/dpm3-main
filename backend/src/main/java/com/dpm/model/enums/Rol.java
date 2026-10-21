@@ -16,5 +16,6 @@ package com.dpm.model.enums;
 
 public enum Rol {
     USER,
-    ADMIN
+    ADMIN,
+    GUARDIA
 }

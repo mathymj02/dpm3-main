@@ -40,28 +40,26 @@ public class DpmApplication {
     }
 
     /**
-     * Sembrador automático que garantiza que el usuario Administrador (admin@dpm.cl / admin123)
-     * siempre exista en la base de datos con su contraseña encriptada correctamente con BCrypt.
+     * Sembrador inicial que crea el usuario Administrador del club solo si la cuenta no existe.
+     * Respeta cambios posteriores de contraseña y auditoría, permitiendo además configurar la clave inicial
+     * mediante la variable de entorno DPM_INITIAL_ADMIN_PASSWORD (default seguro: admin123 para desarrollo).
      */
     @Bean
     public CommandLineRunner initAdminUser(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            usuarioRepository.findByEmail("admin@dpm.cl").ifPresentOrElse(
-                admin -> {
-                    admin.setPasswordHash(passwordEncoder.encode("admin123"));
-                    admin.setRol(Rol.ADMIN);
-                    usuarioRepository.save(admin);
-                },
-                () -> {
-                    Usuario admin = Usuario.builder()
-                            .nombre("Administrador DPM")
-                            .email("admin@dpm.cl")
-                            .passwordHash(passwordEncoder.encode("admin123"))
-                            .rol(Rol.ADMIN)
-                            .build();
-                    usuarioRepository.save(admin);
+            if (usuarioRepository.findByEmail("admin@dpm.cl").isEmpty()) {
+                String initialPassword = System.getenv("DPM_INITIAL_ADMIN_PASSWORD");
+                if (initialPassword == null || initialPassword.isBlank()) {
+                    initialPassword = "admin123";
                 }
-            );
+                Usuario admin = Usuario.builder()
+                        .nombre("Administrador DPM")
+                        .email("admin@dpm.cl")
+                        .passwordHash(passwordEncoder.encode(initialPassword))
+                        .rol(Rol.ADMIN)
+                        .build();
+                usuarioRepository.save(admin);
+            }
         };
     }
 }

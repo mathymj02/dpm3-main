@@ -43,12 +43,14 @@ import {
   FaChartLine,
   FaSyncAlt,
   FaUserPlus,
-  FaUsers
+  FaUsers,
+  FaCalendarAlt,
+  FaYoutube
 } from 'react-icons/fa';
 import { Posicion, Novedad, Producto, Jugador } from '../types';
 
 export const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'posiciones' | 'novedades' | 'productos' | 'jugadores'>('posiciones');
+  const [activeTab, setActiveTab] = useState<'posiciones' | 'novedades' | 'productos' | 'jugadores' | 'partidos'>('posiciones');
 
   // =========================================================================
   // 1. ESTADO DE TABLA DE POSICIONES
@@ -254,7 +256,7 @@ export const AdminDashboard: React.FC = () => {
   const fetchAforoReal = async () => {
     try {
       const res = await api.get('/entradas/aforo');
-      if (res.data) {
+      if (res.data && res.data.ingresados !== undefined) {
         setAforoData({
           ingresados: res.data.ingresados ?? 0,
           capacidadTotal: res.data.capacidadTotal ?? 10000,
@@ -262,59 +264,96 @@ export const AdminDashboard: React.FC = () => {
           recaudacionTotal: res.data.recaudacionTotal ?? 0,
           entradasEmitidas: res.data.entradasEmitidas ?? 0
         });
+        localStorage.setItem('dpm_aforo_local', JSON.stringify(res.data));
+        return;
       }
     } catch {
-      // Modo offline
+      // Modo offline fallback
+    }
+
+    // Leer de localStorage compartido
+    const local = localStorage.getItem('dpm_aforo_local');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        setAforoData(prev => ({
+          ...prev,
+          ingresados: parsed.ingresados ?? prev.ingresados,
+          porcentajeOcupacion: parsed.porcentajeOcupacion ?? prev.porcentajeOcupacion,
+          recaudacionTotal: parsed.recaudacionTotal ?? prev.recaudacionTotal,
+          entradasEmitidas: parsed.entradasEmitidas ?? prev.entradasEmitidas
+        }));
+      } catch {}
     }
   };
 
   useEffect(() => {
     fetchAforoReal();
-    const timer = setInterval(fetchAforoReal, 3000);
-    return () => clearInterval(timer);
+    const timer = setInterval(fetchAforoReal, 2000);
+
+    const handleAforoEvent = (e: any) => {
+      if (e.detail) {
+        setAforoData(e.detail);
+      } else {
+        fetchAforoReal();
+      }
+    };
+
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === 'dpm_aforo_local') {
+        fetchAforoReal();
+      }
+    };
+
+    window.addEventListener('dpm_aforo_updated', handleAforoEvent);
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('dpm_aforo_updated', handleAforoEvent);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, []);
 
   const handleReiniciarAforo = async () => {
+    localStorage.removeItem('dpm_aforo_local');
+    const resetData = {
+      ingresados: 0,
+      capacidadTotal: 10000,
+      porcentajeOcupacion: 0.0,
+      recaudacionTotal: 0,
+      entradasEmitidas: 0
+    };
     try {
       const res = await api.post('/entradas/reiniciar');
       if (res.data) {
-        setAforoData({
-          ingresados: res.data.ingresados ?? 0,
-          capacidadTotal: res.data.capacidadTotal ?? 10000,
-          porcentajeOcupacion: res.data.porcentajeOcupacion ?? 0.0,
-          recaudacionTotal: res.data.recaudacionTotal ?? 0,
-          entradasEmitidas: res.data.entradasEmitidas ?? 0
-        });
+        setAforoData(res.data);
+      } else {
+        setAforoData(resetData);
       }
-      toastSuccess('¡Operación reiniciada! Aforo en 0 y entradas liberadas para la prueba.');
     } catch {
-      setAforoData({
-        ingresados: 0,
-        capacidadTotal: 10000,
-        porcentajeOcupacion: 0.0,
-        recaudacionTotal: 0,
-        entradasEmitidas: 0
-      });
-      toastSuccess('¡Aforo restablecido a 0 para demostración en vivo!');
+      setAforoData(resetData);
     }
+    window.dispatchEvent(new CustomEvent('dpm_aforo_updated', { detail: resetData }));
+    toastSuccess('¡Operación reiniciada! Aforo en 0 y entradas liberadas para la prueba.');
   };
 
   // =========================================================================
   // 5. ESTADO DINÁMICO DE JUGADORES (CRUD ADULTOS MAYORES / DIRECTIVA)
   // =========================================================================
   const defaultPlantel: Jugador[] = [
-    { id: '1', nombre: 'Kevin Catalán', posicion: 'Portero', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-5.png', dorsal: 1, partidosJugados: 16, atajadas: 48, precisionPases: '89% Atajadas', clubOrigen: 'Cantera DPM Chinquihue', pieHabil: 'Derecho', descripcion: '🧱 Muro en el arco con reflejos felinos y seguridad aérea.' },
-    { id: '2', nombre: 'Carlos Rodríguez', posicion: 'Volante', edad: 32, nacionalidad: 'Chile', fotoUrl: '/images/arnaldo-castillo-850x400.jpg', dorsal: 8, partidosJugados: 15, goles: 3, asistencias: 6, precisionPases: '87% Pases', clubOrigen: 'Deportes Puerto Montt', pieHabil: 'Derecho', descripcion: '🧠 Capitán y líder táctico en la distribución.' },
-    { id: '3', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-1.png', dorsal: 4, partidosJugados: 16, recuperaciones: 44, goles: 1, precisionPases: '83% Duelos', clubOrigen: 'Huachipato / DPM', pieHabil: 'Derecho', descripcion: '⚡ Velocidad y compromiso defensivo por la banda.' },
-    { id: '4', nombre: 'Maximiliano Riveros', posicion: 'Volante', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugador-riveros.jpg', dorsal: 6, partidosJugados: 14, goles: 2, asistencias: 4, precisionPases: '88% Pases', clubOrigen: 'Deportes Valdivia / DPM', pieHabil: 'Derecho', descripcion: '🦁 Precisión en pases y gran dominio en el mediocampo.' },
-    { id: '5', nombre: 'Kevin Flores', posicion: 'Defensa', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/jugador-flores.jpg', dorsal: 5, partidosJugados: 15, recuperaciones: 41, goles: 1, precisionPases: '81% Quites', clubOrigen: 'Santiago Wanderers / DPM', pieHabil: 'Derecho', descripcion: '🧱 Anticipación férrea y gran poderío físico.' },
-    { id: '6', nombre: 'Yakob Yousef', posicion: 'Delantero', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/jugador-yousef.jpg', dorsal: 9, partidosJugados: 16, goles: 8, asistencias: 3, precisionPases: '79% Puntería', clubOrigen: 'Universidad Católica / DPM', pieHabil: 'Derecho', descripcion: '🎯 Definición implacable y olfato de gol.' },
-    { id: '7', nombre: 'Sebastián Torres', posicion: 'Defensa', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/jugador-3.png', dorsal: 3, partidosJugados: 13, recuperaciones: 36, asistencias: 2, precisionPases: '82% Marca', clubOrigen: 'Deportes Temuco / DPM', pieHabil: 'Derecho', descripcion: '🚀 Centros quirúrgicos y marca implacable.' },
-    { id: '8', nombre: 'Daniel Bahamonde', posicion: 'Defensa', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-6.png', dorsal: 14, partidosJugados: 15, recuperaciones: 39, asistencias: 3, precisionPases: '84% Recorrido', clubOrigen: 'Cantera DPM Chinquihue', pieHabil: 'Izquierdo', descripcion: '🏃‍♂️ Motor incansable del carril izquierdo.' },
-    { id: '9', nombre: 'Giovanni Bustos', posicion: 'Volante', edad: 25, nacionalidad: 'Chile', fotoUrl: '/images/jugador-4.png', dorsal: 10, partidosJugados: 16, goles: 4, asistencias: 7, precisionPases: '90% Precisión', clubOrigen: 'Deportes Puerto Montt', pieHabil: 'Derecho', descripcion: '🎩 Visión de juego privilegiada y presión alta.' },
-    { id: '10', nombre: 'Sebastián González', posicion: 'Volante', edad: 30, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-2.png', dorsal: 17, partidosJugados: 14, recuperaciones: 28, asistencias: 3, precisionPases: '85% Duelos', clubOrigen: 'Everton / DPM', pieHabil: 'Derecho', descripcion: '📊 Inteligencia táctica y efectividad.' },
-    { id: '11', nombre: 'Kevin Mansilla', posicion: 'Delantero', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-8.png', dorsal: 11, partidosJugados: 14, goles: 6, asistencias: 2, precisionPases: '78% Conversión', clubOrigen: 'Deportes Puerto Montt', pieHabil: 'Izquierdo', descripcion: '🧭 Olfato goleador de área y ubicación.' },
-    { id: '12', nombre: 'Fabián Rodríguez', posicion: 'Delantero', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/jugadores-7.png', dorsal: 19, partidosJugados: 13, goles: 5, asistencias: 1, precisionPases: '77% Puntería', clubOrigen: 'Cantera DPM Chinquihue', pieHabil: 'Derecho', descripcion: '❤️ Entrega total al acecho del gol.' }
+    { id: '1', nombre: 'Luis Ureta', posicion: 'Portero', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/luis-ureta.webp', dorsal: 1, partidosJugados: 16, atajadas: 52, precisionPases: '89% Atajadas', clubOrigen: "O'Higgins / DPM Chinquihue", pieHabil: 'Derecho', descripcion: '🧤 "Pelle": Arquero titular con reflejos felinos y seguridad aérea.' },
+    { id: '2', nombre: 'Vicente Yáñez', posicion: 'Defensa', edad: 28, nacionalidad: 'Chile', fotoUrl: '/images/vicente-yanez.webp', dorsal: 4, partidosJugados: 16, recuperaciones: 48, goles: 1, precisionPases: '84% Duelos', clubOrigen: 'Huachipato / DPM', pieHabil: 'Derecho', descripcion: '⚡ "Chente": Defensa aguerrido, rápido en las coberturas y de gran quite.' },
+    { id: '3', nombre: 'Maximiliano Riveros', posicion: 'Defensa', edad: 29, nacionalidad: 'Chile', fotoUrl: '/images/maximiliano-riveros.webp', dorsal: 6, partidosJugados: 15, recuperaciones: 45, goles: 2, precisionPases: '88% Pases', clubOrigen: 'Deportes Valdivia / DPM', pieHabil: 'Derecho', descripcion: '🦁 "Maxi": Capitán y pilar de la zaga central. Liderazgo y salida limpia.' },
+    { id: '4', nombre: 'Daniel Bahamonde', posicion: 'Defensa', edad: 24, nacionalidad: 'Chile', fotoUrl: '/images/daniel-bahamonde.webp', dorsal: 14, partidosJugados: 15, recuperaciones: 39, asistencias: 4, precisionPases: '85% Recorrido', clubOrigen: 'Cantera DPM Chinquihue', pieHabil: 'Izquierdo', descripcion: '🏃‍♂️ "Pájaro": Canterano puertomontino del carril izquierdo. Proyección ofensiva.' },
+    { id: '5', nombre: 'Byron Nieto', posicion: 'Defensa', edad: 27, nacionalidad: 'Chile', fotoUrl: '/images/byron-nieto.webp', dorsal: 2, partidosJugados: 14, recuperaciones: 36, asistencias: 3, precisionPases: '83% Centros', clubOrigen: 'Universidad Católica / DPM', pieHabil: 'Derecho', descripcion: '⚡ "El Rayo": Lateral derecho con potencia, velocidad y centros quirúrgicos.' },
+    { id: '6', nombre: 'Jesús Pino', posicion: 'Defensa', edad: 32, nacionalidad: 'Chile', fotoUrl: '/images/jesus-pino.webp', dorsal: 3, partidosJugados: 13, recuperaciones: 38, goles: 1, precisionPases: '82% Anticipo', clubOrigen: 'Unión San Felipe / DPM', pieHabil: 'Derecho', descripcion: '🧱 Central de vasta experiencia. Fortaleza física, anticipación y voz de mando.' },
+    { id: '7', nombre: 'Juan Miguel Jaime', posicion: 'Volante', edad: 30, nacionalidad: 'Argentina', fotoUrl: '/images/juan-jaime.webp', dorsal: 8, partidosJugados: 16, goles: 3, asistencias: 5, precisionPases: '89% Precisión', clubOrigen: 'Talleres / DPM Chinquihue', pieHabil: 'Derecho', descripcion: '🎩 "El Puma de Monteros": Mediocampista de corte y distribución con visión de juego.' },
+    { id: '8', nombre: 'Gabriel Castillo', posicion: 'Volante', edad: 26, nacionalidad: 'Chile', fotoUrl: '/images/gabriel-castillo.webp', dorsal: 5, partidosJugados: 15, recuperaciones: 42, asistencias: 3, precisionPases: '86% Quites', clubOrigen: 'Cobresal / DPM', pieHabil: 'Derecho', descripcion: '⚔️ "Casti": Volante mixto de gran recuperación física, presión alta y remate.' },
+    { id: '9', nombre: 'Danilo Díaz', posicion: 'Volante', edad: 23, nacionalidad: 'Chile', fotoUrl: '/images/danilo-diaz.webp', dorsal: 10, partidosJugados: 16, goles: 4, asistencias: 7, precisionPases: '91% Pases Clave', clubOrigen: 'Colo Colo / DPM', pieHabil: 'Derecho', descripcion: '🪄 "Chico Díaz": Volante creativo de técnica depurada y lanzador oficial.' },
+    { id: '10', nombre: 'Cristóbal Vargas', posicion: 'Volante', edad: 25, nacionalidad: 'Chile', fotoUrl: '/images/harold-antinirre.webp', dorsal: 17, partidosJugados: 14, goles: 3, asistencias: 4, precisionPases: '85% Regates', clubOrigen: 'Universidad Católica / DPM', pieHabil: 'Derecho', descripcion: '⚡ "Gato": Desequilibrio individual, cambio de ritmo y llegada al área.' },
+    { id: '11', nombre: 'Reiner Castro', posicion: 'Delantero', edad: 30, nacionalidad: 'Venezuela', fotoUrl: '/images/reiner-castro.webp', dorsal: 7, partidosJugados: 16, goles: 9, asistencias: 6, precisionPases: '87% Desborde', clubOrigen: 'Caracas FC / Deportes Puerto Montt', pieHabil: 'Derecho', descripcion: '🚀 "Ñeñe": Extremo supersónico y figura albiverde. Gambeta, velocidad y gol.' },
+    { id: '12', nombre: 'Luciano Vázquez', posicion: 'Delantero', edad: 38, nacionalidad: 'Argentina', fotoUrl: '/images/luciano-vazquez.webp', dorsal: 9, partidosJugados: 15, goles: 11, asistencias: 3, precisionPases: '80% Definición', clubOrigen: 'Ñublense / DPM Chinquihue', pieHabil: 'Derecho', descripcion: '🦈 "Tiburón": Centrodelantero goleador implacable dentro del área y experiencia.' }
   ];
 
   const [jugadores, setJugadores] = useState<Jugador[]>(() => {
@@ -455,19 +494,84 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const fotosOficialesDisponibles = [
-    { url: '/images/jugador-5.png', label: 'Arquero Catalán' },
-    { url: '/images/arnaldo-castillo-850x400.jpg', label: 'C. Rodríguez (Capitán)' },
-    { url: '/images/jugadores-1.png', label: 'Vicente Yáñez' },
-    { url: '/images/jugador-riveros.jpg', label: 'Maxi Riveros' },
-    { url: '/images/jugador-flores.jpg', label: 'Kevin Flores' },
-    { url: '/images/jugador-yousef.jpg', label: 'Yakob Yousef' },
-    { url: '/images/jugador-3.png', label: 'Sebastián Torres' },
-    { url: '/images/jugadores-6.png', label: 'Daniel Bahamonde' },
-    { url: '/images/jugador-4.png', label: 'Giovanni Bustos' },
-    { url: '/images/jugadores-2.png', label: 'S. González' },
-    { url: '/images/jugadores-8.png', label: 'Kevin Mansilla' },
-    { url: '/images/jugadores-7.png', label: 'Fabián Rodríguez' }
+    { url: '/images/luis-ureta.webp', label: 'Luis Ureta (Arq)' },
+    { url: '/images/vicente-yanez.webp', label: 'Vicente Yáñez' },
+    { url: '/images/maximiliano-riveros.webp', label: 'Maxi Riveros' },
+    { url: '/images/daniel-bahamonde.webp', label: 'D. Bahamonde' },
+    { url: '/images/byron-nieto.webp', label: 'Byron Nieto' },
+    { url: '/images/jesus-pino.webp', label: 'Jesús Pino' },
+    { url: '/images/juan-jaime.webp', label: 'Juan Jaime' },
+    { url: '/images/gabriel-castillo.webp', label: 'G. Castillo' },
+    { url: '/images/danilo-diaz.webp', label: 'Danilo Díaz' },
+    { url: '/images/harold-antinirre.webp', label: 'C. Vargas' },
+    { url: '/images/reiner-castro.webp', label: 'Reiner Castro' },
+    { url: '/images/luciano-vazquez.webp', label: 'L. Vázquez' }
   ];
+
+  // =========================================================================
+  // ESTADO DE PARTIDOS & FIXTURE / RESÚMENES TNT SPORTS
+  // =========================================================================
+  const defaultPartidosAdmin = {
+    proximo: {
+      rival: 'Ñublense',
+      escudoRival: 'https://dpmchile.cl/wp-content/uploads/2024/08/nublense.webp',
+      torneo: 'Copa Chile Coca-Cola Sin Azúcar 2026',
+      fecha: 'Domingo 28 de Septiembre 2026',
+      hora: '18:00 hrs',
+      estadio: 'Estadio Bicentenario Chinquihue',
+      esLocal: true,
+      ticketLink: '/entradas'
+    },
+    ultimo: {
+      rival: 'Magallanes',
+      escudoRival: '/images/escudo-magallanes.png',
+      torneo: 'Copa Chile Coca-Cola Sin Azúcar 2026',
+      fecha: 'Sábado 21 de Septiembre 2026',
+      golesDpm: 2,
+      golesRival: 0,
+      youtubeId: 'ScQrhZAB-lg',
+      youtubeTitulo: 'Deportes Puerto Montt 2 - 0 Magallanes | Resumen Oficial TNT Sports'
+    }
+  };
+
+  const [partidosForm, setPartidosForm] = useState(() => {
+    const saved = localStorage.getItem('dpm_partidos_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return defaultPartidosAdmin;
+  });
+
+  const handleGuardarPartidos = () => {
+    let ytId = (partidosForm.ultimo.youtubeId || '').trim();
+    if (ytId.includes('watch?v=')) {
+      ytId = ytId.split('watch?v=')[1].split('&')[0];
+    } else if (ytId.includes('youtu.be/')) {
+      ytId = ytId.split('youtu.be/')[1].split('?')[0];
+    } else if (ytId.includes('embed/')) {
+      ytId = ytId.split('embed/')[1].split('?')[0];
+    }
+
+    const payload = {
+      ...partidosForm,
+      ultimo: {
+        ...partidosForm.ultimo,
+        youtubeId: ytId || 'ScQrhZAB-lg'
+      }
+    };
+
+    localStorage.setItem('dpm_partidos_data', JSON.stringify(payload));
+    setPartidosForm(payload);
+    toastSuccess('¡Fixture, Próximo Partido y Resumen TNT Sports actualizados con éxito!');
+  };
+
+  const handleRestablecerPartidos = () => {
+    localStorage.removeItem('dpm_partidos_data');
+    setPartidosForm(defaultPartidosAdmin);
+    toastInfo('Valores de partidos y video restablecidos a los datos oficiales por defecto.');
+  };
 
   // Guardar Posiciones en LocalStorage
   const guardarPosiciones = (nuevas: Posicion[]) => {
@@ -765,6 +869,17 @@ export const AdminDashboard: React.FC = () => {
               }`}
             >
               <FaUserFriends /> Plantel Profesional
+            </button>
+
+            <button
+              onClick={() => setActiveTab('partidos')}
+              className={`py-4 border-b-2 font-bold text-sm flex items-center gap-2 whitespace-nowrap transition ${
+                activeTab === 'partidos'
+                  ? 'border-verde-dpm text-verde-dpm'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <FaCalendarAlt /> Próximo Partido & TNT Sports
             </button>
           </nav>
         </div>
@@ -1889,6 +2004,315 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* PESTAÑA 5: GESTIÓN DE FIXTURE, PRÓXIMO PARTIDO & TNT SPORTS       */}
+        {/* ================================================================= */}
+        {activeTab === 'partidos' && (
+          <div className="p-6 sm:p-8 space-y-8 bg-slate-50/50">
+            {/* Encabezado Explicativo amigable para adultos mayores */}
+            <div className="bg-gradient-to-r from-azul-dpm to-slate-900 text-white p-6 rounded-2xl shadow-md border border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-amarillo-dpm bg-amarillo-dpm/20 px-3 py-1 rounded-full border border-amarillo-dpm/40">
+                  Control de Cartelera & Multimedia
+                </span>
+                <h2 className="text-2xl font-black mt-2">Gestión del Próximo Encuentro y Resumen TNT Sports</h2>
+                <p className="text-sm text-gray-200 mt-1">
+                  Aquí la directiva puede actualizar el rival de turno, horario, venta de entradas y el video oficial de YouTube de TNT Sports con solo pegar el enlace.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGuardarPartidos}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2 text-sm cursor-pointer"
+                >
+                  <FaSave /> Guardar Cambios en Vivo
+                </button>
+                <button
+                  onClick={handleRestablecerPartidos}
+                  className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-3 rounded-xl transition flex items-center gap-2 text-xs cursor-pointer border border-white/20"
+                >
+                  <FaUndo /> Restablecer
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* TARJETA 1: PRÓXIMO ENCUENTRO */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5">
+                <div className="flex items-center gap-2 pb-3 border-b border-gray-100 text-verde-dpm font-black text-lg">
+                  <FaCalendarAlt /> Próximo Encuentro (Cartelera Principal)
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre del Rival</label>
+                    <input
+                      type="text"
+                      value={partidosForm.proximo.rival}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        proximo: { ...partidosForm.proximo, rival: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold focus:ring-2 focus:ring-verde-dpm focus:border-verde-dpm"
+                      placeholder="Ej: Ñublense, Provincial Osorno, etc."
+                    />
+                    {/* Botones de sugerencia rápida */}
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <span className="text-[10px] text-gray-500 font-bold self-center mr-1">Rápido:</span>
+                      {['Ñublense', 'Provincial Osorno', 'Deportes Concepción', 'Deportes Melipilla', 'Deportes Temuco', 'Rangers'].map((rivalName) => (
+                        <button
+                          key={rivalName}
+                          type="button"
+                          onClick={() => {
+                            let escudo = '/images/escudo-concepcion.png';
+                            if (rivalName === 'Provincial Osorno') escudo = '/images/escudo-osorno.jpg';
+                            if (rivalName === 'Deportes Temuco') escudo = '/images/escudo-temuco.png';
+                            if (rivalName === 'Rangers') escudo = '/images/escudo-rangers.png';
+                            if (rivalName === 'Ñublense') escudo = 'https://dpmchile.cl/wp-content/uploads/2024/08/nublense.webp';
+                            setPartidosForm({
+                              ...partidosForm,
+                              proximo: {
+                                ...partidosForm.proximo,
+                                rival: rivalName,
+                                escudoRival: escudo
+                              }
+                            });
+                          }}
+                          className="text-[10px] font-bold bg-gray-100 hover:bg-emerald-100 hover:text-emerald-800 text-gray-700 px-2 py-1 rounded-lg transition"
+                        >
+                          {rivalName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Escudo del Rival (URL o Imagen)</label>
+                    <div className="flex gap-3 items-center">
+                      <div className="w-14 h-14 rounded-xl border border-gray-200 bg-gray-50 p-2 shrink-0 flex items-center justify-center">
+                        <img 
+                          src={partidosForm.proximo.escudoRival} 
+                          alt="Escudo Rival" 
+                          className="w-full h-full object-contain"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/images/escudo-concepcion.png'; }}
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.escudoRival}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, escudoRival: e.target.value }
+                        })}
+                        className="flex-1 border border-gray-300 rounded-xl p-3 text-xs font-mono text-gray-700 focus:ring-2 focus:ring-verde-dpm"
+                        placeholder="URL de la imagen o /images/escudo-..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Torneo / Campeonato</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.torneo}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, torneo: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Copa Chile Coca-Cola Sin Azúcar"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Estadio</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.estadio}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, estadio: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Estadio Bicentenario Chinquihue"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha del Partido</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.fecha}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, fecha: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Domingo 28 de Septiembre 2026"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Hora</label>
+                      <input
+                        type="text"
+                        value={partidosForm.proximo.hora}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          proximo: { ...partidosForm.proximo, hora: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: 18:00 hrs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Enlace a Venta de Entradas</label>
+                    <input
+                      type="text"
+                      value={partidosForm.proximo.ticketLink}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        proximo: { ...partidosForm.proximo, ticketLink: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-mono text-gray-700"
+                      placeholder="/entradas o link externo de Ticketplus"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* TARJETA 2: ÚLTIMO MARCADOR & YOUTUBE TNT SPORTS */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-5">
+                <div className="flex items-center gap-2 pb-3 border-b border-gray-100 text-red-600 font-black text-lg">
+                  <FaYoutube /> Marcador Oficial & Resumen YouTube TNT Sports
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Rival Último Partido</label>
+                      <input
+                        type="text"
+                        value={partidosForm.ultimo.rival}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, rival: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Magallanes"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Fecha Último Partido</label>
+                      <input
+                        type="text"
+                        value={partidosForm.ultimo.fecha}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, fecha: e.target.value }
+                        })}
+                        className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                        placeholder="Ej: Sábado 21 de Septiembre 2026"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Marcador Goles DPM y Rival */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-gray-200 flex items-center justify-around gap-4 text-center">
+                    <div>
+                      <span className="block text-xs font-black text-emerald-800 uppercase mb-1">Goles DPM</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={partidosForm.ultimo.golesDpm}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, golesDpm: parseInt(e.target.value) || 0 }
+                        })}
+                        className="w-20 text-center font-black text-3xl text-emerald-600 bg-white border border-emerald-300 rounded-xl p-2 shadow-inner"
+                      />
+                    </div>
+                    <span className="text-2xl font-black text-gray-400 self-center mt-4">-</span>
+                    <div>
+                      <span className="block text-xs font-black text-gray-700 uppercase mb-1">Goles Rival</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={partidosForm.ultimo.golesRival}
+                        onChange={(e) => setPartidosForm({
+                          ...partidosForm,
+                          ultimo: { ...partidosForm.ultimo, golesRival: parseInt(e.target.value) || 0 }
+                        })}
+                        className="w-20 text-center font-black text-3xl text-gray-800 bg-white border border-gray-300 rounded-xl p-2 shadow-inner"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                      Video de YouTube TNT Sports (ID o Enlace Completo)
+                    </label>
+                    <input
+                      type="text"
+                      value={partidosForm.ultimo.youtubeId}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        ultimo: { ...partidosForm.ultimo, youtubeId: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-mono text-gray-800"
+                      placeholder="Ej: ScQrhZAB-lg o https://www.youtube.com/watch?v=ScQrhZAB-lg"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      ℹ️ Tip para directivos: Puedes copiar y pegar directamente el enlace de YouTube que comparte TNT Sports Chile. El sistema detecta el video automáticamente.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Título del Video</label>
+                    <input
+                      type="text"
+                      value={partidosForm.ultimo.youtubeTitulo}
+                      onChange={(e) => setPartidosForm({
+                        ...partidosForm,
+                        ultimo: { ...partidosForm.ultimo, youtubeTitulo: e.target.value }
+                      })}
+                      className="w-full border border-gray-300 rounded-xl p-3 text-sm font-semibold"
+                      placeholder="Ej: Resumen DPM 2 - 0 Magallanes | TNT Sports"
+                    />
+                  </div>
+
+                  {/* Vista Previa del Video Embebido */}
+                  <div className="pt-2">
+                    <span className="block text-xs font-bold text-gray-500 uppercase mb-2">Vista Previa Inmediata:</span>
+                    <div className="relative pt-[56.25%] rounded-xl overflow-hidden bg-black border border-gray-300 shadow">
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${partidosForm.ultimo.youtubeId.replace('https://www.youtube.com/watch?v=', '').replace('https://youtu.be/', '').replace('https://www.youtube.com/embed/', '').split('&')[0]}`}
+                        title="Previsualización TNT Sports"
+                        className="absolute inset-0 w-full h-full border-0"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            {/* Botón inferior grande de Guardar */}
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={handleGuardarPartidos}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-4 rounded-2xl shadow-xl transition flex items-center gap-2 text-base cursor-pointer transform hover:-translate-y-0.5"
+              >
+                <FaCheckCircle /> Guardar Configuración de Partidos y Resúmenes
+              </button>
+            </div>
           </div>
         )}
 
